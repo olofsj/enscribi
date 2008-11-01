@@ -70,6 +70,7 @@ _cb_mouse_down(void *data, Evas *evas, Evas_Object *obj, void *event_info)
     sd->hold_timer = NULL;
 
     ev = event_info;
+    _ekanji_canvas_stroke_new(obj);
     _ekanji_canvas_stroke_line_add(obj, ev->canvas.x, ev->canvas.y);
 
     printf("Mouse down.\n");
@@ -83,7 +84,6 @@ _cb_mouse_up(void *data, Evas *evas, Evas_Object *obj, void *event_info)
     sd = evas_object_smart_data_get(obj);
     sd->hold_timer = ecore_timer_add(1.0, _ekanji_canvas_cb_hold_timeout, sd);
 
-    _ekanji_canvas_stroke_new(obj);
     printf("Mouse up.\n");
 }
 
@@ -91,19 +91,10 @@ static void
 _cb_mouse_move(void *data, Evas *evas, Evas_Object *obj, void *event_info)
 {
     Evas_Event_Mouse_Move *ev;
-    Eina_List *last;
-    Stroke *stroke;
-    Smart_Data *sd;
-
-    sd = evas_object_smart_data_get(obj);
-
-    last = eina_list_last(sd->strokes);
-    stroke = last->data;
-    if (stroke->points == NULL) 
-        return;
 
     ev = event_info;
-    _ekanji_canvas_stroke_line_add(obj, ev->cur.canvas.x, ev->cur.canvas.y);
+    if (ev->buttons == 1)
+        _ekanji_canvas_stroke_line_add(obj, ev->cur.canvas.x, ev->cur.canvas.y);
 }
 
 /* private functions */
@@ -172,6 +163,32 @@ _ekanji_canvas_stroke_line_add(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
     }
 }
 
+static void
+_ekanji_canvas_clear(Evas_Object *obj)
+{
+    Smart_Data *sd;
+    Stroke *stroke;
+    Evas_Object *line;
+
+    sd = evas_object_smart_data_get(obj);
+    while (sd->strokes) {
+        stroke = sd->strokes->data;
+        if (stroke) {
+            while (stroke->lines) {
+                line = stroke->lines->data;
+                evas_object_del(line);
+                stroke->lines = eina_list_remove_list(stroke->lines, stroke->lines);
+            }
+            while (stroke->points) {
+                free(stroke->points->data);
+                stroke->points = eina_list_remove_list(stroke->points, stroke->points);
+            }
+            free(stroke);
+        }
+        sd->strokes = eina_list_remove_list(sd->strokes, sd->strokes);
+    }
+}
+
 static int
 _ekanji_canvas_cb_hold_timeout(void *data)
 {
@@ -224,8 +241,8 @@ _ekanji_canvas_recognition_update(Smart_Data *sd)
 
     zinnia_result_destroy(result);
     zinnia_character_destroy(character);
-    //zinnia_recognizer_destroy(recognizer);
 
+    _ekanji_canvas_clear(sd->obj);
 }
 
 static void
@@ -259,7 +276,6 @@ static void
 _smart_add(Evas_Object *obj)
 {
     Smart_Data *sd;
-    Stroke *stroke;
 
     /* Initialize smart data and clipping */
     sd = calloc(1, sizeof(Smart_Data));
@@ -283,10 +299,6 @@ _smart_add(Evas_Object *obj)
 
     /* Initialize list of strokes */
     sd->strokes = NULL;
-    stroke = malloc(sizeof(Stroke));
-    stroke->lines = NULL;
-    stroke->points = NULL;
-    sd->strokes = eina_list_append(sd->strokes, stroke);
 
     /* Set up callbacks */
     evas_object_event_callback_add(obj, EVAS_CALLBACK_MOUSE_DOWN, _cb_mouse_down, NULL);
@@ -305,6 +317,7 @@ _smart_del(Evas_Object *obj)
     if (!sd) return;
     evas_object_del(sd->clip);
     evas_object_del(sd->bg);
+    zinnia_recognizer_destroy(sd->recognizer);
     free(sd);
 }
 
