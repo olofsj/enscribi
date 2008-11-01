@@ -1,4 +1,6 @@
 #include <Evas.h>
+#include <Ecore.h>
+#include <zinnia.h>
 #include "ekanji_canvas.h" 
 
 typedef struct _Smart_Data Smart_Data;
@@ -24,6 +26,8 @@ struct _Smart_Data
     Evas_Object     *clip;
     Evas_Object     *bg;
     Eina_List       *strokes;
+    Ecore_Timer     *hold_timer;
+    zinnia_recognizer_t *recognizer;
 }; 
 
 /* local subsystem functions */
@@ -40,6 +44,8 @@ static void _smart_clip_unset(Evas_Object *obj);
 
 static void _ekanji_canvas_stroke_new(Evas_Object *obj);
 static void _ekanji_canvas_stroke_line_add(Evas_Object *obj, Evas_Coord x, Evas_Coord y);
+static void _ekanji_canvas_recognition_update(Smart_Data *sd);
+static int _ekanji_canvas_cb_hold_timeout(void *data);
 
 /* local subsystem globals */
 static Evas_Smart *_e_smart = NULL;
@@ -60,6 +66,8 @@ _cb_mouse_down(void *data, Evas *evas, Evas_Object *obj, void *event_info)
     Smart_Data *sd;
 
     sd = evas_object_smart_data_get(obj);
+    if (sd->hold_timer) ecore_timer_del(sd->hold_timer);
+    sd->hold_timer = NULL;
 
     ev = event_info;
     _ekanji_canvas_stroke_line_add(obj, ev->canvas.x, ev->canvas.y);
@@ -70,6 +78,11 @@ _cb_mouse_down(void *data, Evas *evas, Evas_Object *obj, void *event_info)
 static void
 _cb_mouse_up(void *data, Evas *evas, Evas_Object *obj, void *event_info)
 {
+    Smart_Data *sd;
+
+    sd = evas_object_smart_data_get(obj);
+    sd->hold_timer = ecore_timer_add(1.0, _ekanji_canvas_cb_hold_timeout, sd);
+
     _ekanji_canvas_stroke_new(obj);
     printf("Mouse up.\n");
 }
@@ -159,6 +172,62 @@ _ekanji_canvas_stroke_line_add(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
     }
 }
 
+static int
+_ekanji_canvas_cb_hold_timeout(void *data)
+{
+    Smart_Data *sd;
+
+    sd = data;
+    _ekanji_canvas_recognition_update(sd);
+    return 0;
+}
+
+static void
+_ekanji_canvas_recognition_update(Smart_Data *sd)
+{
+    int i, sc;
+    Eina_List *s, *p;
+    Stroke *stroke;
+    Point *point;
+    zinnia_character_t *character;
+    zinnia_result_t *result;
+
+    printf("Update recognition\n");
+
+    /* convert internal stroke data to zinnia format */
+    character  = zinnia_character_new();
+    zinnia_character_clear(character);
+    zinnia_character_set_width(character, sd->w);
+    zinnia_character_set_height(character, sd->h);
+    sc = -1;
+    for (s = sd->strokes; s; s = s->next) {
+        sc++;
+        stroke = s->data;
+        for (p = stroke->points; p; p = p->next) {
+            point = p->data;
+            zinnia_character_add(character, sc, point->x, point->y);
+        }
+    }
+
+    /* cl */
+    result = zinnia_recognizer_classify(sd->recognizer, character, 10);
+    if (result == NULL) {
+        fprintf(stderr, "%s\n", zinnia_recognizer_strerror(sd->recognizer));
+        return;
+    }
+
+    for (i = 0; i < zinnia_result_size(result); ++i) {
+        fprintf(stdout, "%s\t%f\n",
+                zinnia_result_value(result, i),
+                zinnia_result_score(result, i));
+    }
+
+    zinnia_result_destroy(result);
+    zinnia_character_destroy(character);
+    //zinnia_recognizer_destroy(recognizer);
+
+}
+
 static void
 _smart_init(void)
 {
@@ -205,6 +274,13 @@ _smart_add(Evas_Object *obj)
     evas_object_smart_member_add(sd->bg, obj);
     evas_object_show(sd->bg);
     
+    /* Initialize zinnia recognition engine */
+    sd->recognizer = zinnia_recognizer_new();
+    if (!zinnia_recognizer_open(sd->recognizer, "/usr/lib/zinnia/model/tomoe/handwriting-ja.model")) {
+        fprintf(stderr, "ERROR: %s\n", zinnia_recognizer_strerror(sd->recognizer));
+        return;
+    }
+
     /* Initialize list of strokes */
     sd->strokes = NULL;
     stroke = malloc(sizeof(Stroke));

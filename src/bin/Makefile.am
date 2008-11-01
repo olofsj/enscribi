@@ -17,4 +17,4 @@ ekanji_SOURCES = \
 main.c \
 ekanji_canvas.c
 
-ekanji_LDADD = @EKANJI_LIBS@
+ekanji_LDADD = -lzinnia @EKANJI_LIBS@
