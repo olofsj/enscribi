@@ -9,35 +9,50 @@ main(int argc, char **argv)
 {
     Ecore_Evas *ee;
     Evas *evas;
-    Evas_Object *bg;
+    Evas_Object *bg, *edje;
+    Evas_Coord w, h;
+    Evas_Object *canvas;
+    w = 350;
+    h = 200;
 
     /* initialize our libraries */
     evas_init();
     ecore_init();
     ecore_evas_init();
+    edje_init();
 
-    /* create our Ecore_Evas and show it */
-    ee = ecore_evas_software_x11_new(0, 0, 0, 0, 300, 300);
+    /* create our Ecore_Evas */
+    ee = ecore_evas_software_x11_new(0, 0, 0, 0, w, h);
     ecore_evas_title_set(ee, "EKanji");
-    ecore_evas_show(ee);
 
     /* get a pointer our new Evas canvas */
     evas = ecore_evas_get(ee);
 
     /* create our white background */
+    /*
     bg = evas_object_rectangle_add(evas);
     evas_object_color_set(bg, 255, 255, 255, 255);
     evas_object_move(bg, 0, 0);
     evas_object_resize(bg, 300, 300);
     evas_object_name_set(bg, "background");
     evas_object_show(bg);
+    */
 
-    /* create the canvas object */
-    Evas_Object *canvas;
+    /* load the edje */
+    edje = edje_object_add(evas);
+    edje_object_file_set(edje, "../../data/themes/ekanji.edj", "main");
+    evas_object_move(edje, 0, 0);
+    evas_object_resize(edje, w, h);
+    evas_object_show(edje);
+
+    /* create the canvas objects */
     canvas = ekanji_canvas_add(evas);
-    evas_object_move(canvas, 50, 50);
-    evas_object_resize(canvas, 200, 200);
-    evas_object_show(canvas);
+    edje_object_part_swallow(edje, "base.swallow.canvas.1", canvas);
+    canvas = ekanji_canvas_add(evas);
+    edje_object_part_swallow(edje, "base.swallow.canvas.2", canvas);
+
+    /* show the window */
+    ecore_evas_show(ee);
 
     /* start the main event loop */
     ecore_main_loop_begin();

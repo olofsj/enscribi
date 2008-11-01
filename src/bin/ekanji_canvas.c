@@ -1,5 +1,6 @@
 #include <Evas.h>
 #include <Ecore.h>
+#include <Edje.h>
 #include <zinnia.h>
 #include "ekanji_canvas.h" 
 
@@ -226,7 +227,7 @@ _ekanji_canvas_recognition_update(Smart_Data *sd)
         }
     }
 
-    /* cl */
+    /* classify stroke data */
     result = zinnia_recognizer_classify(sd->recognizer, character, 10);
     if (result == NULL) {
         fprintf(stderr, "%s\n", zinnia_recognizer_strerror(sd->recognizer));
@@ -237,6 +238,13 @@ _ekanji_canvas_recognition_update(Smart_Data *sd)
         fprintf(stdout, "%s\t%f\n",
                 zinnia_result_value(result, i),
                 zinnia_result_score(result, i));
+    }
+    
+    /* emit signal to edje parent about update */
+    Evas_Object *parent;
+    parent = evas_object_smart_parent_get(sd->obj);
+    if (parent) {
+        edje_object_signal_emit(parent, "canvas,results,updated", "canvas");
     }
 
     zinnia_result_destroy(result);
@@ -281,6 +289,7 @@ _smart_add(Evas_Object *obj)
     sd = calloc(1, sizeof(Smart_Data));
     if (!sd) return;
     sd->obj = obj;
+    sd->hold_timer = NULL;
     sd->clip = evas_object_rectangle_add(evas_object_evas_get(obj));
     evas_object_smart_member_add(sd->clip, obj);
 

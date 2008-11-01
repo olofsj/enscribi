@@ -19,6 +19,7 @@ PKG_CHECK_MODULES([EKANJI], [
    evas
    ecore
    ecore-evas
+   edje
    ])
 
 AC_OUTPUT([
@@ -27,4 +28,6 @@ src/Makefile
 src/bin/Makefile
 data/Makefile
 data/desktop/Makefile
+data/themes/Makefile
+data/themes/images/Makefile
 ])
