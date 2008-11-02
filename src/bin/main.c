@@ -5,6 +5,7 @@
 #include "ekanji_canvas.h" 
 
 static void _ekanji_cb_matches(void *data, Evas_Object *obj, const char *emission, const char *source);
+static void _ekanji_cb_finished(void *data, Evas_Object *obj, const char *emission, const char *source);
 
 static Evas_Object *_results = NULL;
 
@@ -19,16 +20,25 @@ _ekanji_cb_matches(void *data, Evas_Object *obj, const char *emission, const cha
     i = 0;
     for (l = matches; l; l = l->next) {
         match = l->data;
-        printf("%s\t%f\n", match->str, match->score);
+        //printf("%s\t%f\n", match->str, match->score);
         if (i < 8) {
-            char part[8];
-            sprintf(part, "result/%d", i);
+            char part[16];
+            sprintf(part, "result/choice/%d", i);
             edje_object_part_text_set(obj, part, match->str);
             if (i == 0) 
                 edje_object_part_text_set(obj, "result", match->str);
         }
         i++;
     }
+}
+
+static void
+_ekanji_cb_finished(void *data, Evas_Object *obj, const char *emission, const char *source)
+{
+    const char *str;
+
+    str = edje_object_part_text_get(obj, "result");
+    printf("Result: %s\n", str);
 }
 
 int
@@ -63,7 +73,8 @@ main(int argc, char **argv)
     evas_object_show(edje);
     canvas = ekanji_canvas_add(evas);
     edje_object_part_swallow(edje, "canvas", canvas);
-    edje_object_signal_callback_add(edje, "canvas,results,updated", "canvas", _ekanji_cb_matches, canvas);
+    edje_object_signal_callback_add(edje, "canvas,matches,updated", "canvas", _ekanji_cb_matches, canvas);
+    edje_object_signal_callback_add(edje, "result,finished", "result", _ekanji_cb_finished, canvas);
 
     /* show the window */
     ecore_evas_show(ee);

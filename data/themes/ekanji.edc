@@ -1,3 +1,38 @@
+#define RESULT_CHOICE(NAME, REL1X, REL1Y, REL2X, REL2Y) \
+part { name: "result/choice/"NAME; \
+    type: TEXT; \
+    effect: NONE; \
+    clip_to: "result/choice/clip"; \
+    description { state: "default" 0.0; \
+        color:  0 0 0 255; \
+        text { \
+            text:        ""; \
+            font:        "Sans"; \
+            size:         18; \
+            align:       0.5 0.5; \
+        } \
+        rel1 { \
+            relative: REL1X REL1Y; \
+            offset: 0 0; \
+        } \
+        rel2 { \
+            relative: REL2X REL2Y; \
+            offset: -1 -1; \
+        } \
+    } \
+}
+#define RESULT_CHOICE_CLICKED(NAME) \
+program { name: "result/choice/"NAME",clicked"; \
+    signal:     "mouse,down,1"; \
+    source:     "result/choice/"NAME; \
+    script { \
+        set_state(PART:"result/choice/clip", "default", 0.0); \
+        new buf[256]; \
+        get_text(PART:"result/choice/"NAME, buf, 256); \
+        set_text(PART:"result", buf); \
+    } \
+}
+
 collections {
     group { name: "ekanji/input";
         images {
@@ -148,182 +183,14 @@ collections {
                     }
                 }
             }
-            part { name: "result/0";
-                type: TEXT;
-                effect: NONE;
-                clip_to: "result/choice/clip";
-                description { state: "default" 0.0;
-                    color:  0 0 0 255;
-                    text {
-                        text:        "";
-                        font:        "Sans";
-                        size:         18;
-                        align:       0.5 0.5;
-                    }
-                    rel1 {
-                        relative: 0.0 0.0;
-                        offset: 0 0;
-                    }
-                    rel2 {
-                        relative: 0.33 0.33;
-                        offset: -1 -1;
-                    }
-                }
-            }
-            part { name: "result/1";
-                type: TEXT;
-                effect: NONE;
-                clip_to: "result/choice/clip";
-                description { state: "default" 0.0;
-                    color:  0 0 0 255;
-                    text {
-                        text:        "";
-                        font:        "Sans";
-                        size:         18;
-                        align:       0.5 0.5;
-                    }
-                    rel1 {
-                        relative: 0.33 0.0;
-                        offset: 0 0;
-                    }
-                    rel2 {
-                        relative: 0.67 0.33;
-                        offset: -1 -1;
-                    }
-                }
-            }
-            part { name: "result/2";
-                type: TEXT;
-                effect: NONE;
-                clip_to: "result/choice/clip";
-                description { state: "default" 0.0;
-                    color:  0 0 0 255;
-                    text {
-                        text:        "";
-                        font:        "Sans";
-                        size:         18;
-                        align:       0.5 0.5;
-                    }
-                    rel1 {
-                        relative: 0.67 0.0;
-                        offset: 0 0;
-                    }
-                    rel2 {
-                        relative: 1.0 0.33;
-                        offset: -1 -1;
-                    }
-                }
-            }
-            part { name: "result/3";
-                type: TEXT;
-                effect: NONE;
-                clip_to: "result/choice/clip";
-                description { state: "default" 0.0;
-                    color:  0 0 0 255;
-                    text {
-                        text:        "";
-                        font:        "Sans";
-                        size:         18;
-                        align:       0.5 0.5;
-                    }
-                    rel1 {
-                        relative: 0.0 0.33;
-                        offset: 0 0;
-                    }
-                    rel2 {
-                        relative: 0.33 0.67;
-                        offset: -1 -1;
-                    }
-                }
-            }
-            part { name: "result/4";
-                type: TEXT;
-                effect: NONE;
-                clip_to: "result/choice/clip";
-                description { state: "default" 0.0;
-                    color:  0 0 0 255;
-                    text {
-                        text:        "";
-                        font:        "Sans";
-                        size:         18;
-                        align:       0.5 0.5;
-                    }
-                    rel1 {
-                        relative: 0.33 0.33;
-                        offset: 0 0;
-                    }
-                    rel2 {
-                        relative: 0.67 0.67;
-                        offset: -1 -1;
-                    }
-                }
-            }
-            part { name: "result/5";
-                type: TEXT;
-                effect: NONE;
-                clip_to: "result/choice/clip";
-                description { state: "default" 0.0;
-                    color:  0 0 0 255;
-                    text {
-                        text:        "";
-                        font:        "Sans";
-                        size:         18;
-                        align:       0.5 0.5;
-                    }
-                    rel1 {
-                        relative: 0.67 0.33;
-                        offset: 0 0;
-                    }
-                    rel2 {
-                        relative: 1.0 0.67;
-                        offset: -1 -1;
-                    }
-                }
-            }
-            part { name: "result/6";
-                type: TEXT;
-                effect: NONE;
-                clip_to: "result/choice/clip";
-                description { state: "default" 0.0;
-                    color:  0 0 0 255;
-                    text {
-                        text:        "";
-                        font:        "Sans";
-                        size:         18;
-                        align:       0.5 0.5;
-                    }
-                    rel1 {
-                        relative: 0.0 0.67;
-                        offset: 0 0;
-                    }
-                    rel2 {
-                        relative: 0.33 1.0;
-                        offset: -1 -1;
-                    }
-                }
-            }
-            part { name: "result/7";
-                type: TEXT;
-                effect: NONE;
-                clip_to: "result/choice/clip";
-                description { state: "default" 0.0;
-                    color:  0 0 0 255;
-                    text {
-                        text:        "";
-                        font:        "Sans";
-                        size:         18;
-                        align:       0.5 0.5;
-                    }
-                    rel1 {
-                        relative: 0.33 0.67;
-                        offset: 0 0;
-                    }
-                    rel2 {
-                        relative: 0.67 1.0;
-                        offset: -1 -1;
-                    }
-                }
-            }
+            RESULT_CHOICE("0", 0.00, 0.00, 0.33, 0.33)
+            RESULT_CHOICE("1", 0.33, 0.00, 0.67, 0.33)
+            RESULT_CHOICE("2", 0.67, 0.00, 1.00, 0.33)
+            RESULT_CHOICE("3", 0.00, 0.33, 0.33, 0.67)
+            RESULT_CHOICE("4", 0.33, 0.33, 0.67, 0.67)
+            RESULT_CHOICE("5", 0.67, 0.33, 1.00, 0.67)
+            RESULT_CHOICE("6", 0.00, 0.67, 0.33, 1.00)
+            RESULT_CHOICE("7", 0.33, 0.67, 0.67, 1.00)
             part { name: "result/clear";
                 type: RECT;
                 clip_to: "result/choice/clip";
@@ -342,16 +209,16 @@ collections {
         }
         programs {
             program {
-                name:       "results,show";
-                signal:     "canvas,results,updated";
+                name:       "result,show";
+                signal:     "canvas,matches,updated";
                 source:     "canvas";
                 action:      STATE_SET "visible" 0.0;
                 target:     "result/clip";
                 in:          0.0 0.0;
             }
-            program { name: "results,hide";
-                signal:     "results,finished";
-                source:     "*";
+            program { name: "result,hide";
+                signal:     "result,finished";
+                source:     "result";
                 action:      STATE_SET "default" 0.0;
                 target:     "result/clip";
                 target:     "result/choice/clip";
@@ -360,7 +227,7 @@ collections {
             program { name: "result,clicked";
                 signal:     "mouse,down,1";
                 source:     "result/bg";
-                action:      SIGNAL_EMIT "results,finished" "";
+                action:      SIGNAL_EMIT "result,finished" "result";
             }
             program { name: "result/choose,clicked";
                 signal:     "mouse,down,1";
@@ -377,6 +244,14 @@ collections {
                 target:     "result/choice/clip";
                 in:          0.0 0.0;
             }
+            RESULT_CHOICE_CLICKED("0")
+            RESULT_CHOICE_CLICKED("1")
+            RESULT_CHOICE_CLICKED("2")
+            RESULT_CHOICE_CLICKED("3")
+            RESULT_CHOICE_CLICKED("4")
+            RESULT_CHOICE_CLICKED("5")
+            RESULT_CHOICE_CLICKED("6")
+            RESULT_CHOICE_CLICKED("7")
         }
     }
 }

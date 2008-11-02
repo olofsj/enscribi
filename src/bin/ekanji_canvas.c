@@ -262,7 +262,7 @@ _ekanji_canvas_recognition_update(Smart_Data *sd)
     Evas_Object *parent;
     parent = evas_object_smart_parent_get(sd->obj);
     if (parent) {
-        edje_object_signal_emit(parent, "canvas,results,updated", "canvas");
+        edje_object_signal_emit(parent, "canvas,matches,updated", "canvas");
     }
 
     zinnia_result_destroy(result);
