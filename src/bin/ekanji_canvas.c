@@ -27,6 +27,7 @@ struct _Smart_Data
     Evas_Object     *clip;
     Evas_Object     *bg;
     Eina_List       *strokes;
+    Eina_List       *matches;
     Ecore_Timer     *hold_timer;
     zinnia_recognizer_t *recognizer;
 }; 
@@ -57,6 +58,17 @@ ekanji_canvas_add(Evas *evas)
 {
     _smart_init();
     return evas_object_smart_add(evas, _e_smart);
+}
+
+Eina_List *ekanji_canvas_matches_get(Evas_Object *obj)
+{
+    Smart_Data *sd;
+
+    sd = evas_object_smart_data_get(obj);
+    if (!sd) 
+        return NULL;
+
+    return sd->matches;
 }
 
 /* callbacks */
@@ -152,7 +164,7 @@ _ekanji_canvas_stroke_line_add(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
             p->y = y;
             stroke->points = eina_list_append(stroke->points, p);
 
-            printf("%d %d\n", x, y);
+            //printf("%d %d\n", x, y);
         }
     }
     else {
@@ -207,10 +219,15 @@ _ekanji_canvas_recognition_update(Smart_Data *sd)
     Eina_List *s, *p;
     Stroke *stroke;
     Point *point;
+    Match *match;
     zinnia_character_t *character;
     zinnia_result_t *result;
 
     printf("Update recognition\n");
+    while (sd->matches) {
+        free(sd->matches->data);
+        sd->matches = eina_list_remove_list(sd->matches, sd->matches);
+    }
 
     /* convert internal stroke data to zinnia format */
     character  = zinnia_character_new();
@@ -227,7 +244,7 @@ _ekanji_canvas_recognition_update(Smart_Data *sd)
         }
     }
 
-    /* classify stroke data */
+    /* classify stroke data and update matches */
     result = zinnia_recognizer_classify(sd->recognizer, character, 10);
     if (result == NULL) {
         fprintf(stderr, "%s\n", zinnia_recognizer_strerror(sd->recognizer));
@@ -235,9 +252,10 @@ _ekanji_canvas_recognition_update(Smart_Data *sd)
     }
 
     for (i = 0; i < zinnia_result_size(result); ++i) {
-        fprintf(stdout, "%s\t%f\n",
-                zinnia_result_value(result, i),
-                zinnia_result_score(result, i));
+        match = malloc(sizeof(Match));
+        match->str = zinnia_result_value(result, i);
+        match->score = zinnia_result_score(result, i);
+        sd->matches = eina_list_append(sd->matches, match);
     }
     
     /* emit signal to edje parent about update */
@@ -249,6 +267,13 @@ _ekanji_canvas_recognition_update(Smart_Data *sd)
 
     zinnia_result_destroy(result);
     zinnia_character_destroy(character);
+
+    /*
+    for (s = sd->matches; s; s = s->next) {
+        match = s->data;
+        printf("%s\t%f\n", match->str, match->score);
+    }
+    */
 
     _ekanji_canvas_clear(sd->obj);
 }
@@ -306,8 +331,9 @@ _smart_add(Evas_Object *obj)
         return;
     }
 
-    /* Initialize list of strokes */
+    /* Initialize lists */
     sd->strokes = NULL;
+    sd->matches = NULL;
 
     /* Set up callbacks */
     evas_object_event_callback_add(obj, EVAS_CALLBACK_MOUSE_DOWN, _cb_mouse_down, NULL);

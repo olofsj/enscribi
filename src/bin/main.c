@@ -4,15 +4,39 @@
 #include <Ecore_Evas.h>
 #include "ekanji_canvas.h" 
 
+static void _ekanji_cb_matches(void *data, Evas_Object *obj, const char *emission, const char *source);
+
+static Evas_Object *_results = NULL;
+
+static void
+_ekanji_cb_matches(void *data, Evas_Object *obj, const char *emission, const char *source)
+{
+    Match *match;
+    Eina_List *matches, *l;
+    int i;
+
+    matches = ekanji_canvas_matches_get(data);
+    i = 0;
+    for (l = matches; l; l = l->next) {
+        match = l->data;
+        printf("%s\t%f\n", match->str, match->score);
+        if (i < 9) {
+            char part[8];
+            sprintf(part, "result/%d", i);
+            edje_object_part_text_set(_results, part, match->str);
+        }
+        i++;
+    }
+}
+
 int
 main(int argc, char **argv)
 {
     Ecore_Evas *ee;
     Evas *evas;
-    Evas_Object *bg, *edje;
+    Evas_Object *bg, *edje, *o, *canvas;
     Evas_Coord w, h;
-    Evas_Object *canvas;
-    w = 350;
+    w = 200;
     h = 200;
 
     /* initialize our libraries */
@@ -28,28 +52,19 @@ main(int argc, char **argv)
     /* get a pointer our new Evas canvas */
     evas = ecore_evas_get(ee);
 
-    /* create our white background */
-    /*
-    bg = evas_object_rectangle_add(evas);
-    evas_object_color_set(bg, 255, 255, 255, 255);
-    evas_object_move(bg, 0, 0);
-    evas_object_resize(bg, 300, 300);
-    evas_object_name_set(bg, "background");
-    evas_object_show(bg);
-    */
 
-    /* load the edje */
+    /* Load and set up the edje objects and canvas */
     edje = edje_object_add(evas);
-    edje_object_file_set(edje, "../../data/themes/ekanji.edj", "main");
+    edje_object_file_set(edje, "../../data/themes/ekanji.edj", "ekanji/input");
     evas_object_move(edje, 0, 0);
     evas_object_resize(edje, w, h);
     evas_object_show(edje);
-
-    /* create the canvas objects */
     canvas = ekanji_canvas_add(evas);
-    edje_object_part_swallow(edje, "base.swallow.canvas.1", canvas);
-    canvas = ekanji_canvas_add(evas);
-    edje_object_part_swallow(edje, "base.swallow.canvas.2", canvas);
+    edje_object_part_swallow(edje, "canvas", canvas);
+    _results = edje_object_add(evas);
+    edje_object_file_set(_results, "../../data/themes/ekanji.edj", "ekanji/input/results");
+    edje_object_part_swallow(edje, "results", _results);
+    edje_object_signal_callback_add(edje, "canvas,results,updated", "canvas", _ekanji_cb_matches, canvas);
 
     /* show the window */
     ecore_evas_show(ee);
