@@ -20,10 +20,12 @@ _ekanji_cb_matches(void *data, Evas_Object *obj, const char *emission, const cha
     for (l = matches; l; l = l->next) {
         match = l->data;
         printf("%s\t%f\n", match->str, match->score);
-        if (i < 9) {
+        if (i < 8) {
             char part[8];
             sprintf(part, "result/%d", i);
-            edje_object_part_text_set(_results, part, match->str);
+            edje_object_part_text_set(obj, part, match->str);
+            if (i == 0) 
+                edje_object_part_text_set(obj, "result", match->str);
         }
         i++;
     }
@@ -61,9 +63,6 @@ main(int argc, char **argv)
     evas_object_show(edje);
     canvas = ekanji_canvas_add(evas);
     edje_object_part_swallow(edje, "canvas", canvas);
-    _results = edje_object_add(evas);
-    edje_object_file_set(_results, "../../data/themes/ekanji.edj", "ekanji/input/results");
-    edje_object_part_swallow(edje, "results", _results);
     edje_object_signal_callback_add(edje, "canvas,results,updated", "canvas", _ekanji_cb_matches, canvas);
 
     /* show the window */
