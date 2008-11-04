@@ -13,7 +13,7 @@ main(int argc, char **argv)
     Evas *evas;
     Evas_Object *bg, *edje, *o, *canvas;
     Evas_Coord w, h;
-    w = 200;
+    w = 400;
     h = 200;
 
     /* initialize our libraries */
@@ -30,10 +30,17 @@ main(int argc, char **argv)
     evas = ecore_evas_get(ee);
 
     /* Load and set up the edje objects */
-    o = ekanji_input_frame_add(evas);
-    evas_object_move(o, 0, 0);
-    evas_object_resize(o, w, h);
-    evas_object_show(o);
+    edje = edje_object_add(evas);
+    edje_object_file_set(edje, "../../data/themes/ekanji.edj", "ekanji/kbd");
+    evas_object_move(edje, 0, 0);
+    evas_object_resize(edje, w, h);
+    evas_object_show(edje);
+    o = ekanji_input_frame_add(evas, edje);
+    edje_object_part_swallow(edje, "input/1", o);
+    o = ekanji_input_frame_add(evas, edje);
+    edje_object_part_swallow(edje, "input/2", o);
+    o = ekanji_input_frame_add(evas, edje);
+    edje_object_part_swallow(edje, "input/3", o);
 
     /* show the window */
     ecore_evas_show(ee);

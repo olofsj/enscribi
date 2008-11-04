@@ -1,3 +1,104 @@
+collections {
+    group { name: "ekanji/kbd";
+        images {
+        }
+        script {
+            public message(Msg_Type:type, id, ...) {
+                if ((type == MSG_STRING) && (id == 188)) {
+                    new arg[5];
+                    new buf[256];
+
+                    getsarg(2, arg, 5);
+                    get_text(PART:"result", buf, 251);
+                    strcat(buf, arg);
+                    set_text(PART:"result", buf);
+                }
+            }
+        }
+        parts {
+            part {	  name: "bg";
+                type: RECT;
+                mouse_events: 0;
+                description { state: "default" 0.0;
+                    align: 0 0;
+                    color: 225 225 225 255;
+                    rel1 {
+                        relative: 0.0 0.0;
+                        offset: 0 0;
+                    }
+                    rel2 {
+                        relative: 1.0 1.0;
+                        offset: -1 -1;
+                    }
+                }
+            }
+            part { name: "result";
+                type: TEXT;
+                effect: NONE;
+                description { state: "default" 0.0;
+                    color:  0 0 0 255;
+                    align: 0 0;
+                    text {
+                        text:        "";
+                        font:        "Sans";
+                        size:         18;
+                        align:       0.0 0.5;
+                    }
+                    rel1 {
+                        relative: 0.0 0.0;
+                        offset: 10 10;
+                    }
+                    rel2 {
+                        relative: 1.0 0.4;
+                        offset: -11 -11;
+                    }
+                }
+            }
+            part { name: "input/1";
+                type: SWALLOW;
+                description { state: "default" 0.0;
+                    aspect: 1.0 1.0;
+                    rel1 {
+                        relative: 0.0 0.4;
+                        offset: 10 10;
+                    }
+                    rel2 {
+                        relative: 0.3 1.0;
+                        offset: -11 -11;
+                    }
+                }
+            }
+            part { name: "input/2";
+                type: SWALLOW;
+                description { state: "default" 0.0;
+                    aspect: 1.0 1.0;
+                    rel1 {
+                        relative: 0.3 0.4;
+                        offset: 10 10;
+                    }
+                    rel2 {
+                        relative: 0.6 1.0;
+                        offset: -11 -11;
+                    }
+                }
+            }
+            part { name: "input/3";
+                type: SWALLOW;
+                description { state: "default" 0.0;
+                    aspect: 1.0 1.0;
+                    rel1 {
+                        relative: 0.6 0.4;
+                        offset: 10 10;
+                    }
+                    rel2 {
+                        relative: 0.9 1.0;
+                        offset: -11 -11;
+                    }
+                }
+            }
+        }
+    }
+
 #define RESULT_CHOICE(NAME, REL1X, REL1Y, REL2X, REL2Y) \
 part { name: "result/choice/"NAME; \
     type: TEXT; \
@@ -10,7 +111,6 @@ part { name: "result/choice/"NAME; \
             font:        "Sans"; \
             size:         18; \
             align:       0.5 0.5; \
-            fit:         1 1; \
         } \
         rel1 { \
             relative: REL1X REL1Y; \
@@ -34,7 +134,6 @@ program { name: "result/choice/"NAME",clicked"; \
     } \
 }
 
-collections {
     group { name: "ekanji/input";
         images {
         }
@@ -146,7 +245,7 @@ collections {
                         font:        "Sans";
                         size:         36;
                         align:       0.5 0.5;
-                        fit:         1 1; // Fit is very slow for japanese kanji...
+                        //fit:         1 1; // Fit is very slow for japanese kanji...
                     }
                     rel1 {
                         relative: 0.0 0.0;

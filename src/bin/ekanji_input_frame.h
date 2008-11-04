@@ -3,7 +3,7 @@
    
 #include <Evas.h>
 
-Evas_Object *ekanji_input_frame_add(Evas *evas);
+Evas_Object *ekanji_input_frame_add(Evas *evas, Evas_Object *parent);
 
 #endif
 
