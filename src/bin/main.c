@@ -2,12 +2,11 @@
 #include <Evas.h>
 #include <Ecore.h>
 #include <Ecore_Evas.h>
+#include <Edje.h>
 #include "ekanji_canvas.h" 
 
 static void _ekanji_cb_matches(void *data, Evas_Object *obj, const char *emission, const char *source);
 static void _ekanji_cb_finished(void *data, Evas_Object *obj, const char *emission, const char *source);
-
-static Evas_Object *_results = NULL;
 
 static void
 _ekanji_cb_matches(void *data, Evas_Object *obj, const char *emission, const char *source)
@@ -15,21 +14,21 @@ _ekanji_cb_matches(void *data, Evas_Object *obj, const char *emission, const cha
     Match *match;
     Eina_List *matches, *l;
     int i;
-
+    Edje_Message_String_Set *msg;
+    
     matches = ekanji_canvas_matches_get(data);
-    i = 0;
-    for (l = matches; l; l = l->next) {
+        
+    msg = calloc(1, sizeof(Edje_Message_String_Set) - sizeof(char *) + (9 * sizeof(char *)));
+    msg->count = 9;
+    for (i = 0; i < 8; i++) {
+        l = eina_list_nth_list(matches, i);
         match = l->data;
-        //printf("%s\t%f\n", match->str, match->score);
-        if (i < 8) {
-            char part[16];
-            sprintf(part, "result/choice/%d", i);
-            edje_object_part_text_set(obj, part, match->str);
-            if (i == 0) 
-                edje_object_part_text_set(obj, "result", match->str);
-        }
-        i++;
+        msg->str[i] = match->str;
+        printf("%s\t\n", msg->str[i]);
     }
+    msg->str[8] = ""; // Why do we have to set a 9th element to not get scrap in 8th?
+    edje_object_message_send(obj, EDJE_MESSAGE_STRING_SET, 1, msg);
+    free(msg);
 }
 
 static void

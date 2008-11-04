@@ -10,6 +10,7 @@ part { name: "result/choice/"NAME; \
             font:        "Sans"; \
             size:         18; \
             align:       0.5 0.5; \
+            fit:         1 1; \
         } \
         rel1 { \
             relative: REL1X REL1Y; \
@@ -36,6 +37,44 @@ program { name: "result/choice/"NAME",clicked"; \
 collections {
     group { name: "ekanji/input";
         images {
+        }
+        script {
+            public matches;
+
+            public message(Msg_Type:type, id, ...) {
+                if ((type == MSG_STRING_SET) && (id == 1)) {
+                    new text[100];
+
+                    while (count(matches) > 0) {
+                        remove(matches, 0);
+                    }
+
+                    for (new i = 2; i < numargs(); i++) {
+                        snprintf(text, 100, "%s", getarg(i));
+                        append_str(matches, text);
+                    }
+                    new buf[100];
+
+                    getsarg(2, buf, 100);
+                    set_text(PART:"result", buf);
+                    set_text(PART:"result/choice/0", buf);
+                    getsarg(3, buf, 100);
+                    set_text(PART:"result/choice/1", buf);
+                    getsarg(4, buf, 100);
+                    set_text(PART:"result/choice/2", buf);
+                    getsarg(5, buf, 100);
+                    set_text(PART:"result/choice/3", buf);
+                    getsarg(6, buf, 100);
+                    set_text(PART:"result/choice/4", buf);
+                    getsarg(7, buf, 100);
+                    set_text(PART:"result/choice/5", buf);
+                    getsarg(8, buf, 100);
+                    set_text(PART:"result/choice/6", buf);
+                    getsarg(9, buf, 100);
+                    set_text(PART:"result/choice/7", buf);
+                }
+            }
+
         }
         parts {
             part {	  name: "bg";
@@ -119,6 +158,7 @@ collections {
                         font:        "Sans";
                         size:         36;
                         align:       0.5 0.5;
+                        fit:         1 1;
                     }
                     rel1 {
                         relative: 0.0 0.0;
