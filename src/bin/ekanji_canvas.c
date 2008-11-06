@@ -2,6 +2,7 @@
 #include <Ecore.h>
 #include <Edje.h>
 #include <zinnia.h>
+#include <math.h>
 #include "ekanji_canvas.h" 
 
 typedef struct _Smart_Data Smart_Data;
@@ -131,7 +132,7 @@ _ekanji_canvas_stroke_line_add(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
 {
     Evas_Coord dx, dy;
     Evas_Object *line;
-    Eina_List *last;
+    Eina_List *last, *ll;
     Stroke *stroke;
     Point *p, *end_p;
     Smart_Data *sd;
@@ -143,32 +144,72 @@ _ekanji_canvas_stroke_line_add(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
 
     /* Draw a line, if this is not the starting point */
     if (stroke->points) {
-        last = eina_list_last(stroke->points);
-        end_p = last->data;
-        dx = x - end_p->x;
-        dy = y - end_p->y;
+        Point *a, *b;
         int delta = 5;
-        if (dx > delta || dx < -delta || dy > delta || dy < -delta) {
-            /* Draw line from last point */
-            line = evas_object_line_add(evas_object_evas_get(sd->obj));
-            evas_object_smart_member_add(line, sd->obj);
-            evas_object_clip_set(line, sd->clip);
-            evas_object_line_xy_set(line, x, y, end_p->x, end_p->y);
-            evas_object_color_set(line, 55, 55, 55, 255);
-            evas_object_show(line);
-            stroke->lines = eina_list_append(stroke->lines, line);
 
-            /* Add point to list of drawn points */
+        last = eina_list_last(stroke->points);
+        ll = last->prev;
+        b = last->data;
+
+        if (ll) {
+            if (abs(x - b->x) > delta || abs(y - b->y) > delta) {
+                /* Some movement, check to see in what direction */
+                float old_x, old_y, new_x, new_y;
+                float diff = 0.1; // This seems to be ok...
+
+                a = ll->data;
+
+                old_x = (float)(b->x - a->x)/sqrt((b->x - a->x)*(b->x - a->x) + (b->y - a->y)*(b->y - a->y));
+                old_y = (float)(b->y - a->y)/sqrt((b->x - a->x)*(b->x - a->x) + (b->y - a->y)*(b->y - a->y));
+                new_x = (float)(x - b->x)/sqrt((x - b->x)*(x - b->x) + (y - b->y)*(y - b->y));
+                new_y = (float)(y - b->y)/sqrt((x - b->x)*(x - b->x) + (y - b->y)*(y - b->y));
+
+                if (fabs(old_x - new_x) > diff || fabs(old_y - new_y) > diff) {
+                    /* Change in direction, add new point */
+                    p = malloc(sizeof(Point));
+                    p->x = x;
+                    p->y = y;
+                    stroke->points = eina_list_append(stroke->points, p);
+
+                    /* Draw line from last point */
+                    line = evas_object_line_add(evas_object_evas_get(sd->obj));
+                    evas_object_smart_member_add(line, sd->obj);
+                    evas_object_clip_set(line, sd->clip);
+                    evas_object_line_xy_set(line, x, y, b->x, b->y);
+                    evas_object_color_set(line, 55, 55, 55, 255);
+                    evas_object_show(line);
+                    stroke->lines = eina_list_append(stroke->lines, line);
+                }
+                else {
+                    /* Small change in direction, move last point */
+                    b->x = x;
+                    b->y = y;
+
+                    /* Redraw line */
+                    last = eina_list_last(stroke->lines);
+                    line = last->data;
+                    evas_object_line_xy_set(line, x, y, a->x, a->y);
+                }
+            }
+        } else {
+            /* Only one point, add point to list of drawn points */
             p = malloc(sizeof(Point));
             p->x = x;
             p->y = y;
             stroke->points = eina_list_append(stroke->points, p);
 
-            //printf("%d %d\n", x, y);
+            /* Draw line from last point */
+            line = evas_object_line_add(evas_object_evas_get(sd->obj));
+            evas_object_smart_member_add(line, sd->obj);
+            evas_object_clip_set(line, sd->clip);
+            evas_object_line_xy_set(line, x, y, b->x, b->y);
+            evas_object_color_set(line, 55, 55, 55, 255);
+            evas_object_show(line);
+            stroke->lines = eina_list_append(stroke->lines, line);
         }
     }
     else {
-        /* Add point to list of drawn points */
+        /* No points added, add a first point to list of drawn points */
         p = malloc(sizeof(Point));
         p->x = x;
         p->y = y;
