@@ -27,11 +27,50 @@ struct _Smart_Data
     Evas_Object     *obj;
     Evas_Object     *clip;
     Evas_Object     *bg;
+    Evas_Object     *img;
     Eina_List       *strokes;
     Eina_List       *matches;
     Ecore_Timer     *hold_timer;
     zinnia_recognizer_t *recognizer;
+    Evas_Coord       last_x, last_y;
+    double           linewidth, lineradius;
 }; 
+
+// Gaussian filter coefficients, used for fast antialiasing of drawn lines
+static double filter[128] = {
+   0.00177842941554831, 0.00367155033810355, 0.00568476116123324, 0.00782355703104358,
+   0.01009351907823090, 0.01250030262719532, 0.01504962437918925, 0.01774724857257251,
+   0.02059897212969449, 0.02361060880668872, 0.02678797236951141, 0.03013685882684069,
+   0.03366302775793274, 0.03737218278115405, 0.04126995121662139, 0.04536186300412581,
+   0.04965332894523129, 0.05414961834605992, 0.05885583614473525, 0.06377689961468713,
+   0.06891751474195341, 0.07428215238117614, 0.07987502430111351, 0.08570005923610124,
+   0.09176087906493278, 0.09806077524301925, 0.10460268561737514, 0.11138917175689482,
+   0.11842239693248376, 0.12570410488283806, 0.13323559950198136, 0.14101772558403575,
+   0.14905085075909033, 0.15733484875141876, 0.16586908408766970, 0.17465239837800997,
+   0.18368309828754090, 0.19295894530864996, 0.20247714743732478, 0.21223435284787884,
+   0.22222664565105671, 0.23244954381016003, 0.24289799927871542, 0.25356640041136952,
+   0.26444857668721750, 0.27553780577173531, 0.28682682292998751, 0.29830783278991602,
+   0.30997252344038706, 0.32181208283439389, 0.33381721745348319, 0.34597817317522478,
+   0.35828475827147088, 0.37072636845138790, 0.38329201384988898, 0.39597034784927254,
+   0.40874969760968077, 0.42161809617254320, 0.43456331599055825, 0.44757290372808384,
+   0.46063421616714184, 0.47373445704666362, 0.48686071465618597, 0.50000000000000033,
+   0.51313928534381459, 0.52626554295333694, 0.53936578383285871, 0.55242709627191677,
+   0.56543668400944236, 0.57838190382745736, 0.59125030239031984, 0.60402965215072801,
+   0.61670798615011146, 0.62927363154861249, 0.64171524172852945, 0.65402182682477561,
+   0.66618278254651719, 0.67818791716560645, 0.69002747655961316, 0.70169216721008432,
+   0.71317317707001271, 0.72446219422826497, 0.73555142331278289, 0.74643359958863087,
+   0.75710200072128497, 0.76755045618984030, 0.77777335434894368, 0.78776564715212150,
+   0.79752285256267563, 0.80704105469135057, 0.81631690171245952, 0.82534760162199050,
+   0.83413091591233068, 0.84266515124858166, 0.85094914924091003, 0.85898227441596464,
+   0.86676440049801906, 0.87429589511716232, 0.88157760306751665, 0.88861082824310555,
+   0.89539731438262515, 0.90193922475698107, 0.90823912093506753, 0.91429994076389909,
+   0.92012497569888685, 0.92571784761882425, 0.93108248525804693, 0.93622310038531309,
+   0.94114416385526500, 0.94585038165394031, 0.95034667105476900, 0.95463813699587452,
+   0.95873004878337886, 0.96262781721884616, 0.96633697224206738, 0.96986314117315953,
+   0.97321202763048875, 0.97638939119331147, 0.97940102787030558, 0.98225275142742763,
+   0.98495037562081078, 0.98749969737280474, 0.98990648092176914, 0.99217644296895646,
+   0.99431523883876682, 0.99632844966189649, 0.99822157058445171, 1.00000000000000000
+};
 
 /* local subsystem functions */
 static void _smart_init(void);
@@ -70,6 +109,78 @@ Eina_List *ekanji_canvas_matches_get(Evas_Object *obj)
         return NULL;
 
     return sd->matches;
+}
+
+static void
+_ekanji_canvas_draw_line(Evas_Object *obj, Evas_Coord x0, Evas_Coord y0, Evas_Coord x1, Evas_Coord y1)
+{
+    Evas_Coord dx, dy, w, h, x, y, min_x, min_y, max_x, max_y;
+    unsigned int *data, *p1, *addr;
+    int a, r, g, b, aa, i0, i1;
+    double k, e0[3], e1[3], e2[3], e3[3];
+    double d0, d1, d2, d3, d4, d5;
+    double W, R;
+    Smart_Data *sd;
+
+    sd = evas_object_smart_data_get(obj);
+    data = evas_object_image_data_get(sd->img, 1);
+    evas_object_image_size_get(sd->img, &w, &h);
+
+    // Set color
+    a = 0xFF;
+    r = g = b = 0xFF;
+
+    // Precalc bounding lines for projection of points
+    dx = x1 - x0;
+    dy = y1 - y0;
+    W = sd->linewidth;
+    R = sd->lineradius;
+    k = 2/((2*R + W)*sqrt(dx*dx + dy*dy));
+    e0[0] = k*(y0-y1); e0[1] = k*(x1-x0); e0[2] = 1 + k*(x0*y1 - x1*y0);
+    e1[0] = k*(x1-x0); e1[1] = k*(y1-y0); e1[2] = 1 + k*(x0*x0 + y0*y0 - x0*x1 - y0*y1);
+    e2[0] = k*(y1-y0); e2[1] = k*(x0-x1); e2[2] = 1 + k*(x1*y0 - x0*y1);
+    e3[0] = k*(x0-x1); e3[1] = k*(y0-y1); e3[2] = 1 + k*(x1*x1 + y1*y1 - x0*x1 - y0*y1);
+    
+    // Boundary of affected area
+    min_x = x1 < x0 ? x1 : x0;
+    min_x -= W/2+R;
+    if (min_x < 0) min_x = 0;
+    max_x = x1 > x0 ? x1 : x0;
+    max_x += W/2+R;
+    if (max_x > w) max_x = w;
+    min_y = y1 < y0 ? y1 : y0;
+    min_y -= W/2+R;
+    if (min_y < 0) min_y = 0;
+    max_y = y1 > y0 ? y1 : y0;
+    max_y += W/2+R;
+    if (max_y > w) max_y = h;
+
+    // Draw points in affected area
+    for (x = min_x; x < max_x; x++) {
+	 for (y = min_y; y < max_y; y++) {
+	      // Project points to get distance to bounding lines
+	      d0 = x * e0[0] + y*e0[1] + e0[2];
+	      d1 = x * e1[0] + y*e1[1] + e1[2];
+	      d2 = x * e2[0] + y*e2[1] + e2[2];
+	      d3 = x * e3[0] + y*e3[1] + e3[2];
+	      if (d0 > 0 && d1 > 0 && d2 > 0 && d3 > 0) {
+		   // Get minimum distance to edges and end points
+		   d5 = d0 < d2 ? d0 : d2;
+		   d4 = d1 < d3 ? d1 : d3;
+
+		   i0 = d4 >= R ? 127 : 127*d4/R;
+		   i1 = d5 >= R ? 127 : 127*d5/R;
+
+		   // Draw point with filtered intensity
+		   p1 = data + (y * w) + x;
+		   aa = 255*filter[i0]*filter[i1];
+		   if (*p1 >> 24 < aa && aa > 0) 
+		     *p1 = ((a*aa)/255 << 24) | ((r*aa)/255 << 16) | ((g*aa)/255 << 8) | (b*aa)/255;
+	      }
+	 }
+    }
+
+    evas_object_image_data_update_add(sd->img, min_x, min_y, max_x, max_y);
 }
 
 /* callbacks */
@@ -130,7 +241,7 @@ _ekanji_canvas_stroke_new(Evas_Object *obj)
 static void
 _ekanji_canvas_stroke_line_add(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
 {
-    Evas_Coord dx, dy;
+    Evas_Coord dx, dy, w, h, xx, yy;
     Evas_Object *line;
     Eina_List *last, *ll;
     Stroke *stroke;
@@ -141,8 +252,12 @@ _ekanji_canvas_stroke_line_add(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
 
     last = eina_list_last(sd->strokes);
     stroke = last->data;
+    
+    x = x - sd->x;
+    y = y - sd->y;
 
-    /* Draw a line, if this is not the starting point */
+
+    /* Draw a line and update stroke list */
     if (stroke->points) {
         Point *a, *b;
         int delta = 5;
@@ -150,6 +265,7 @@ _ekanji_canvas_stroke_line_add(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
         last = eina_list_last(stroke->points);
         ll = last->prev;
         b = last->data;
+	_ekanji_canvas_draw_line(sd->obj, sd->last_x, sd->last_y, x, y);
 
         if (ll) {
             if (abs(x - b->x) > delta || abs(y - b->y) > delta) {
@@ -170,25 +286,11 @@ _ekanji_canvas_stroke_line_add(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
                     p->x = x;
                     p->y = y;
                     stroke->points = eina_list_append(stroke->points, p);
-
-                    /* Draw line from last point */
-                    line = evas_object_line_add(evas_object_evas_get(sd->obj));
-                    evas_object_smart_member_add(line, sd->obj);
-                    evas_object_clip_set(line, sd->clip);
-                    evas_object_line_xy_set(line, x, y, b->x, b->y);
-                    evas_object_color_set(line, 55, 55, 55, 255);
-                    evas_object_show(line);
-                    stroke->lines = eina_list_append(stroke->lines, line);
                 }
                 else {
                     /* Small change in direction, move last point */
                     b->x = x;
                     b->y = y;
-
-                    /* Redraw line */
-                    last = eina_list_last(stroke->lines);
-                    line = last->data;
-                    evas_object_line_xy_set(line, x, y, a->x, a->y);
                 }
             }
         } else {
@@ -197,15 +299,6 @@ _ekanji_canvas_stroke_line_add(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
             p->x = x;
             p->y = y;
             stroke->points = eina_list_append(stroke->points, p);
-
-            /* Draw line from last point */
-            line = evas_object_line_add(evas_object_evas_get(sd->obj));
-            evas_object_smart_member_add(line, sd->obj);
-            evas_object_clip_set(line, sd->clip);
-            evas_object_line_xy_set(line, x, y, b->x, b->y);
-            evas_object_color_set(line, 55, 55, 55, 255);
-            evas_object_show(line);
-            stroke->lines = eina_list_append(stroke->lines, line);
         }
     }
     else {
@@ -214,7 +307,10 @@ _ekanji_canvas_stroke_line_add(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
         p->x = x;
         p->y = y;
         stroke->points = eina_list_append(stroke->points, p);
+	_ekanji_canvas_draw_line(sd->obj, x, y, x, y);
     }
+    sd->last_x = x;
+    sd->last_y = y;
 }
 
 static void
@@ -223,8 +319,22 @@ _ekanji_canvas_clear(Evas_Object *obj)
     Smart_Data *sd;
     Stroke *stroke;
     Evas_Object *line;
+    unsigned int *data, *p1;
+    int i, a, r, g, b, w, h;
 
     sd = evas_object_smart_data_get(obj);
+
+    // Clear image object (set to fully transparent)
+    evas_object_image_size_get(sd->img, &w, &h);
+    data = evas_object_image_data_get(sd->img, 1);
+    a = 0x00;
+    r = g = b = 0x00;
+    for (i = 0; i < w*h; i++) {
+	 p1 = data + i;
+	 *p1 = (a << 24) | (r << 16) | (g << 8) | b;
+    }
+
+    // Clear stroke list
     while (sd->strokes) {
         stroke = sd->strokes->data;
         if (stroke) {
@@ -358,6 +468,8 @@ _smart_add(Evas_Object *obj)
     sd->hold_timer = NULL;
     sd->clip = evas_object_rectangle_add(evas_object_evas_get(obj));
     evas_object_smart_member_add(sd->clip, obj);
+    sd->linewidth = 2.0;
+    sd->lineradius = 1.0;
 
     sd->bg = evas_object_rectangle_add(evas_object_evas_get(obj));
     evas_object_color_set(sd->bg, 240, 240, 240, 255);
@@ -365,6 +477,13 @@ _smart_add(Evas_Object *obj)
     evas_object_smart_member_add(sd->bg, obj);
     evas_object_show(sd->bg);
     
+    sd->img = evas_object_image_filled_add(evas_object_evas_get(obj));
+    evas_object_color_set(sd->img, 0, 0, 128, 255);
+    evas_object_clip_set(sd->img, sd->clip);
+    evas_object_smart_member_add(sd->img, obj);
+    evas_object_image_alpha_set(sd->img, 1);
+    evas_object_show(sd->img);
+
     /* Initialize zinnia recognition engine */
     sd->recognizer = zinnia_recognizer_new();
     if (!zinnia_recognizer_open(sd->recognizer, "/usr/lib/zinnia/model/tomoe/handwriting-ja.model")) {
@@ -393,6 +512,7 @@ _smart_del(Evas_Object *obj)
     if (!sd) return;
     evas_object_del(sd->clip);
     evas_object_del(sd->bg);
+    evas_object_del(sd->img);
     zinnia_recognizer_destroy(sd->recognizer);
     free(sd);
 }
@@ -412,6 +532,7 @@ _smart_move(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
     sd->y = y;
     evas_object_move(sd->clip, x, y);
     evas_object_move(sd->bg, x, y);
+    evas_object_move(sd->img, x, y);
 }
 
 static void
@@ -425,6 +546,9 @@ _smart_resize(Evas_Object *obj, Evas_Coord w, Evas_Coord h)
     sd->h = h;
     evas_object_resize(sd->clip, w, h);
     evas_object_resize(sd->bg, w, h);
+    evas_object_resize(sd->img, w, h);
+    evas_object_image_size_set(sd->img, w, h);
+    _ekanji_canvas_clear(sd->obj);
 }
 
 static void
