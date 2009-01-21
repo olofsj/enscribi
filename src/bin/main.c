@@ -65,7 +65,7 @@ main(int argc, char **argv)
     edje_init();
 
     /* create our Ecore_Evas */
-    ee = ecore_evas_software_x11_new(0, 0, 0, 0, w, h);
+    ee = ecore_evas_new(NULL, 0, 0, w, h, NULL);
     ecore_evas_title_set(ee, "EKanji");
 	ecore_evas_callback_destroy_set(ee, _cb_exit);
     ecore_evas_callback_delete_request_set(ee, _cb_exit);
