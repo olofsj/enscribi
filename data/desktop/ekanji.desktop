@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Ekanji
+Comment=Japanese and Chinese character handwriting recognition input method
+Exec=/home/olof/code/ekanji/src/bin/ekanji
+Icon=
+Terminal=false
+Type=Application
+SingleInstance=true
+StartupNotify=true
+Categories=Keyboard;
