@@ -2,7 +2,7 @@
 Encoding=UTF-8
 Name=Ekanji
 Comment=Japanese and Chinese character handwriting recognition input method
-Exec=/home/olof/code/ekanji/src/bin/ekanji
+Exec=ekanji
 Icon=
 Terminal=false
 Type=Application
