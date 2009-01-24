@@ -3,6 +3,7 @@
 #include <Ecore.h>
 #include <Ecore_Evas.h>
 #include <Ecore_X.h>
+#include <Ecore_X_Atoms.h>
 #include <Edje.h>
 #include "ekanji_canvas.h" 
 #include "ekanji_input_frame.h" 
@@ -18,20 +19,10 @@ static void
 _cb_move(Ecore_Evas *ee)
 {
     printf("Ekanji: _cb_move\n");
-}
 
-static void
-_cb_show(Ecore_Evas *ee)
-{
-    printf("Ekanji: _cb_show\n");
-    ecore_evas_show(ee);
-}
-
-static void
-_cb_hide(Ecore_Evas *ee)
-{
-    printf("Ekanji: _cb_hide\n");
-    ecore_evas_hide(ee);
+    //Evas_Coord w, h, x, y;
+    //ecore_evas_geometry_get(ee, &x, &y, &w, &h);
+    //printf("Moved to %d %d %d %d\n", x, y, w, h);
 }
 
 static void
@@ -48,6 +39,64 @@ _cb_resize(Ecore_Evas *ee)
     if (kbd) evas_object_resize(kbd, w, h);
 }
 
+int _cb_client_message(void *data, int type, void *event)
+{
+  Ecore_X_Event_Client_Message *ev = event;
+  Ecore_Evas *ee = data;
+
+  /* if the message is for the keyboard window... */
+  if (ev->win == ecore_evas_software_x11_window_get(ee))
+    {
+      /* if the message type is a keyboard state... */
+      if (ev->message_type == ECORE_X_ATOM_E_VIRTUAL_KEYBOARD_STATE)
+        {
+          /* handle the various keyboard types */
+          if (ev->data.l[0] == ECORE_X_ATOM_E_VIRTUAL_KEYBOARD_OFF)
+            {
+              printf("KBD Off!\n");
+            }
+          else if (ev->data.l[0] == ECORE_X_VIRTUAL_KEYBOARD_STATE_ON)
+            {
+              printf("KBD On - use default mode!\n");
+            }
+          else if (ev->data.l[0] == ECORE_X_ATOM_E_VIRTUAL_KEYBOARD_ALPHA)
+            {
+              printf("KBD Alpha - use alpha mode!\n");
+            }
+          else if (ev->data.l[0] == ECORE_X_ATOM_E_VIRTUAL_KEYBOARD_NUMERIC)
+            {
+              printf("KBD Numeric - use numeric mode!\n");
+            }
+          else if (ev->data.l[0] == ECORE_X_VIRTUAL_KEYBOARD_STATE_PIN)
+            {
+              printf("KBD Pin - use pin number entry mode!\n");
+            }
+          else if (ev->data.l[0] == ECORE_X_VIRTUAL_KEYBOARD_STATE_PHONE_NUMBER)
+            {
+              printf("KBD Phone Number - use phone number entry mode!\n");
+            }
+          else if (ev->data.l[0] == ECORE_X_VIRTUAL_KEYBOARD_STATE_HEX)
+            {
+              printf("KBD Hex - use hex entry mode mode!\n");
+            }
+          else if (ev->data.l[0] == ECORE_X_VIRTUAL_KEYBOARD_STATE_TERMINAL)
+            {
+              printf("KBD Terminal - use terminal entry mode mode!\n");
+            }
+          else if (ev->data.l[0] == ECORE_X_VIRTUAL_KEYBOARD_STATE_PASSWORD)
+            {
+              printf("KBD Password - use password entry mode!\n");
+            }
+          else
+            {
+              printf("KBD Unknown mode - use default\n");
+            }
+        }
+    }
+  /* return 1 to allow this event to be passed on to other handlers */
+  return 1;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -55,7 +104,7 @@ main(int argc, char **argv)
     Evas *evas;
     Evas_Object *bg, *edje, *o, *canvas;
     Evas_Coord w, h;
-    w = 400;
+    w = 480;
     h = 200;
 
     /* initialize our libraries */
@@ -70,10 +119,7 @@ main(int argc, char **argv)
 	ecore_evas_callback_destroy_set(ee, _cb_exit);
     ecore_evas_callback_delete_request_set(ee, _cb_exit);
 	ecore_evas_callback_move_set(ee, _cb_move);
-    ecore_evas_callback_show_set(ee, _cb_show);
-    ecore_evas_callback_hide_set(ee, _cb_hide);
     ecore_evas_callback_resize_set(ee, _cb_resize);
-    ecore_event_handler_add(ECORE_EVENT_SIGNAL_EXIT, _cb_exit, ee);
 
     /* get a pointer our new Evas canvas */
     evas = ecore_evas_get(ee);
@@ -81,7 +127,7 @@ main(int argc, char **argv)
     /* Load and set up the edje objects */
     edje = edje_object_add(evas);
     evas_object_name_set(edje, "kbd");
-    edje_object_file_set(edje, "../../data/themes/ekanji.edj", "ekanji/kbd");
+    edje_object_file_set(edje, "/home/olof/code/ekanji/data/themes/ekanji.edj", "ekanji/kbd");
     evas_object_move(edje, 0, 0);
     evas_object_resize(edje, w, h);
     evas_object_show(edje);
@@ -92,13 +138,6 @@ main(int argc, char **argv)
     o = ekanji_input_frame_add(evas, edje);
     edje_object_part_swallow(edje, "input/3", o);
 
-    //bg = edje_object_add(evas);
-    //edje_object_file_set(bg, "../../data/themes/ekanji.edj", "ekanji/kbd/illume");
-    //edje_object_part_swallow(bg, "e.swallow.content", edje);
-    //evas_object_move(bg, 0, 0);
-    //evas_object_resize(bg, w, h);
-    //evas_object_show(bg);
-
     /* show the window */
     ecore_evas_show(ee);
 
@@ -108,7 +147,7 @@ main(int argc, char **argv)
     states[0] = ECORE_X_WINDOW_STATE_SKIP_TASKBAR;
     states[1] = ECORE_X_WINDOW_STATE_SKIP_PAGER;
     ecore_x_netwm_window_state_set(ecore_evas_software_x11_window_get(ee), states, 2);
-    //ecore_event_handler_add(ECORE_X_EVENT_CLIENT_MESSAGE, client_message_handler, ee);
+    ecore_event_handler_add(ECORE_X_EVENT_CLIENT_MESSAGE, _cb_client_message, ee);
 
     ecore_evas_title_set(ee, "Virtual Keyboard");
     ecore_evas_name_class_set(ee, "Ekanji", "Virtual-Keyboard");
@@ -120,6 +159,7 @@ main(int argc, char **argv)
     ecore_main_loop_begin();
 
     /* when the main event loop exits, shutdown our libraries */
+    edje_shutdown();
     ecore_evas_shutdown();
     ecore_shutdown();
     evas_shutdown();
