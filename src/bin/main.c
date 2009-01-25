@@ -7,6 +7,7 @@
 #include <Edje.h>
 #include "ekanji_canvas.h" 
 #include "ekanji_input_frame.h" 
+#include "ekanji_util.h" 
 
 static void
 _cb_exit(Ecore_Evas *ee)
@@ -127,7 +128,7 @@ main(int argc, char **argv)
     /* Load and set up the edje objects */
     edje = edje_object_add(evas);
     evas_object_name_set(edje, "kbd");
-    edje_object_file_set(edje, "/home/olof/code/ekanji/data/themes/ekanji.edj", "ekanji/kbd");
+    edje_object_file_set(edje, ekanji_theme_find("ekanji"), "ekanji/kbd");
     evas_object_move(edje, 0, 0);
     evas_object_resize(edje, w, h);
     evas_object_show(edje);

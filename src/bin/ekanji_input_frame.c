@@ -1,6 +1,7 @@
 #include <Evas.h>
 #include <Ecore.h>
 #include <Edje.h>
+#include "ekanji_util.h" 
 #include "ekanji_canvas.h" 
 
 typedef struct _Smart_Data Smart_Data;
@@ -133,7 +134,7 @@ _smart_add(Evas_Object *obj)
    
     /* Set up edje object and canvas */
     sd->edje = edje_object_add(evas_object_evas_get(obj));
-    edje_object_file_set(sd->edje, "/home/olof/code/ekanji/data/themes/ekanji.edj", "ekanji/input");
+    edje_object_file_set(sd->edje, ekanji_theme_find("ekanji"), "ekanji/input");
     evas_object_move(sd->edje, 0, 0);
     evas_object_show(sd->edje);
     sd->canvas = ekanji_canvas_add(evas_object_evas_get(obj));

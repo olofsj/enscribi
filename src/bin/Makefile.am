@@ -11,11 +11,13 @@ INCLUDES = \
 bin_PROGRAMS = ekanji
 
 ekanji_INCLUDES = \
+ekanji_util.h \
 ekanji_canvas.h \
 ekanji_input_frame.h
 
 ekanji_SOURCES = \
 main.c \
+ekanji_util.c \
 ekanji_canvas.c \
 ekanji_input_frame.c
 
