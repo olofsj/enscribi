@@ -12,7 +12,6 @@ typedef struct _Point   Point;
 struct _Stroke
 {
     Eina_List *points;
-    Eina_List *lines;
 };
 
 struct _Point
@@ -26,13 +25,12 @@ struct _Smart_Data
     Evas_Coord       x, y, w, h;
     Evas_Object     *obj;
     Evas_Object     *clip;
-    Evas_Object     *bg;
     Evas_Object     *img;
     Eina_List       *strokes;
     Eina_List       *matches;
     Ecore_Timer     *hold_timer;
     zinnia_recognizer_t *recognizer;
-    Evas_Coord       last_x, last_y;
+    Evas_Coord       last_x, last_y; // Last mouse coords for drawing lines. Could this be handled better?
     double           linewidth, lineradius;
 }; 
 
@@ -233,7 +231,6 @@ _ekanji_canvas_stroke_new(Evas_Object *obj)
     sd = evas_object_smart_data_get(obj);
 
     stroke = malloc(sizeof(Stroke));
-    stroke->lines = NULL;
     stroke->points = NULL;
     sd->strokes = eina_list_append(sd->strokes, stroke);
 }
@@ -242,7 +239,6 @@ static void
 _ekanji_canvas_stroke_line_add(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
 {
     Evas_Coord dx, dy, w, h, xx, yy;
-    Evas_Object *line;
     Eina_List *last, *ll;
     Stroke *stroke;
     Point *p, *end_p;
@@ -265,7 +261,7 @@ _ekanji_canvas_stroke_line_add(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
         last = eina_list_last(stroke->points);
         ll = last->prev;
         b = last->data;
-	_ekanji_canvas_draw_line(sd->obj, sd->last_x, sd->last_y, x, y);
+        _ekanji_canvas_draw_line(sd->obj, sd->last_x, sd->last_y, x, y);
 
         if (ll) {
             if (abs(x - b->x) > delta || abs(y - b->y) > delta) {
@@ -307,7 +303,7 @@ _ekanji_canvas_stroke_line_add(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
         p->x = x;
         p->y = y;
         stroke->points = eina_list_append(stroke->points, p);
-	_ekanji_canvas_draw_line(sd->obj, x, y, x, y);
+        _ekanji_canvas_draw_line(sd->obj, x, y, x, y);
     }
     sd->last_x = x;
     sd->last_y = y;
@@ -318,7 +314,6 @@ _ekanji_canvas_clear(Evas_Object *obj)
 {
     Smart_Data *sd;
     Stroke *stroke;
-    Evas_Object *line;
     unsigned int *data, *p1;
     int i, a, r, g, b, w, h;
 
@@ -338,11 +333,6 @@ _ekanji_canvas_clear(Evas_Object *obj)
     while (sd->strokes) {
         stroke = sd->strokes->data;
         if (stroke) {
-            while (stroke->lines) {
-                line = stroke->lines->data;
-                evas_object_del(line);
-                stroke->lines = eina_list_remove_list(stroke->lines, stroke->lines);
-            }
             while (stroke->points) {
                 free(stroke->points->data);
                 stroke->points = eina_list_remove_list(stroke->points, stroke->points);
@@ -471,12 +461,6 @@ _smart_add(Evas_Object *obj)
     sd->linewidth = 2.0;
     sd->lineradius = 1.0;
 
-    sd->bg = evas_object_rectangle_add(evas_object_evas_get(obj));
-    evas_object_color_set(sd->bg, 240, 240, 240, 255);
-    evas_object_clip_set(sd->bg, sd->clip);
-    evas_object_smart_member_add(sd->bg, obj);
-    evas_object_show(sd->bg);
-    
     sd->img = evas_object_image_filled_add(evas_object_evas_get(obj));
     evas_object_color_set(sd->img, 0, 0, 128, 255);
     evas_object_clip_set(sd->img, sd->clip);
@@ -511,7 +495,6 @@ _smart_del(Evas_Object *obj)
     sd = evas_object_smart_data_get(obj);
     if (!sd) return;
     evas_object_del(sd->clip);
-    evas_object_del(sd->bg);
     evas_object_del(sd->img);
     zinnia_recognizer_destroy(sd->recognizer);
     free(sd);
@@ -531,7 +514,6 @@ _smart_move(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
     sd->x = x;
     sd->y = y;
     evas_object_move(sd->clip, x, y);
-    evas_object_move(sd->bg, x, y);
     evas_object_move(sd->img, x, y);
 }
 
@@ -545,7 +527,6 @@ _smart_resize(Evas_Object *obj, Evas_Coord w, Evas_Coord h)
     sd->w = w;
     sd->h = h;
     evas_object_resize(sd->clip, w, h);
-    evas_object_resize(sd->bg, w, h);
     evas_object_resize(sd->img, w, h);
     evas_object_image_size_set(sd->img, w, h);
     _ekanji_canvas_clear(sd->obj);
