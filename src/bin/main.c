@@ -98,6 +98,41 @@ int _cb_client_message(void *data, int type, void *event)
   return 1;
 }
 
+static const char *
+_string_to_keysym(const char *str)
+{
+   int glyph, ok;
+   /* utf8 -> glyph id (unicode - ucs4) */
+   glyph = 0;
+   ok = evas_string_char_next_get(str, 0, &glyph);
+   if (glyph <= 0) return NULL;
+   /* glyph id -> keysym */
+   if (glyph > 0xff) glyph |= 0x1000000;
+   return ecore_x_keysym_string_get(glyph);
+}
+
+void
+_send_string_press(const char *str)
+{
+   const char *key = NULL;
+   
+   key = _string_to_keysym(str);
+   printf("Ekanji: key = %s\n", key);
+   if (!key) return;
+   ecore_x_test_fake_key_press(key);
+}
+
+static void
+_cb_input_send(void *data, Evas_Object *obj, void *event_info)
+{
+    const char * string;
+
+    string = event_info;
+    printf("Ekanji: _cb_input_send (%s)\n", string);
+    
+    _send_string_press(string);
+}
+
 int
 main(int argc, char **argv)
 {
@@ -133,10 +168,13 @@ main(int argc, char **argv)
     evas_object_resize(edje, w, h);
     evas_object_show(edje);
     o = ekanji_input_frame_add(evas, edje);
+    evas_object_smart_callback_add(o, "input,selected", _cb_input_send, NULL);
     edje_object_part_swallow(edje, "input/1", o);
     o = ekanji_input_frame_add(evas, edje);
+    evas_object_smart_callback_add(o, "input,selected", _cb_input_send, NULL);
     edje_object_part_swallow(edje, "input/2", o);
     o = ekanji_input_frame_add(evas, edje);
+    evas_object_smart_callback_add(o, "input,selected", _cb_input_send, NULL);
     edje_object_part_swallow(edje, "input/3", o);
 
     /* show the window */

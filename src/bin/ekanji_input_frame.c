@@ -88,6 +88,8 @@ _ekanji_input_frame_cb_finished(void *data, Evas_Object *obj, const char *emissi
     printf("Result: %s\n", msg.str);
     if (sd->parent)
         edje_object_message_send(sd->parent, EDJE_MESSAGE_STRING, 188, &msg);
+
+    evas_object_smart_callback_call(sd->obj, "input,selected", edje_object_part_text_get(obj, "result"));
 }
 
 /* private functions */
