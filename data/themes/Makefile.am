@@ -7,7 +7,7 @@ EDJE_FLAGS = \
 -id $(top_srcdir)/data/themes/images \
 -fd $(top_srcdir)/data/themes/fonts 
 
-filesdir = $(datadir)/themes
+filesdir = $(datadir)/$(PACKAGE)/themes
 files_DATA = \
 ekanji.edj
 
