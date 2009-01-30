@@ -1,27 +1,13 @@
 collections {
     group { name: "ekanji/kbd";
         images {
-        }
-        script {
-            public message(Msg_Type:type, id, ...) {
-                if ((type == MSG_STRING) && (id == 188)) {
-                    new arg[5];
-                    new buf[256];
-
-                    getsarg(2, arg, 5);
-                    get_text(PART:"result", buf, 251);
-                    strcat(buf, arg);
-                    set_text(PART:"result", buf);
-                }
-            }
+            image: "k_tab.png" COMP;
+            image: "k_grad.png" COMP;
         }
         parts {
             part {	  name: "bg";
-                type: RECT;
                 mouse_events: 0;
                 description { state: "default" 0.0;
-                    align: 0 0;
-                    color: 225 225 225 255;
                     rel1 {
                         relative: 0.0 0.0;
                         offset: 0 0;
@@ -30,40 +16,63 @@ collections {
                         relative: 1.0 1.0;
                         offset: -1 -1;
                     }
+                    image.normal: "k_grad.png";
+                    fill {
+                        smooth: 0;
+                        size {
+                            relative: 0 1.0;
+                            offset: 36 0;
+                        }
+                    }
                 }
             }
-            part { name: "result";
-                type: TEXT;
-                effect: NONE;
+            part {	  name: "bg/top";
+                mouse_events: 0;
                 description { state: "default" 0.0;
-                    color:  0 0 0 255;
-                    align: 0 0;
-                    text {
-                        text:        "";
-                        font:        "Sans";
-                        size:         18;
-                        align:       0.0 0.5;
-                    }
+                    image.normal: "k_tab.png";
                     rel1 {
                         relative: 0.0 0.0;
-                        offset: 10 10;
+                        offset: 0 0;
                     }
                     rel2 {
-                        relative: 1.0 0.4;
-                        offset: -11 -11;
+                        relative: 1.0 0.0;
+                        offset: -1 15;
+                    }
+                    fill {
+                        smooth: 0;
                     }
                 }
             }
+            /*
+            part {	  name: "input/border";
+                type: RECT;
+                mouse_events: 0;
+                description { state: "default" 0.0;
+                    color: 222 148 69 255;
+                    rel1 {
+                        to: "input/1";
+                        relative: 0.0 0.0;
+                        offset: -1 -1;
+                    }
+                    rel2 {
+                        to: "input/3";
+                        relative: 1.0 1.0;
+                        offset: 0 0;
+                    }
+                }
+            }
+                */
             part { name: "input/1";
                 type: SWALLOW;
                 description { state: "default" 0.0;
                     aspect: 1.0 1.0;
+                    aspect_preference: HORIZONTAL;
                     rel1 {
-                        relative: 0.1 0.4;
-                        offset: 3 0;
+                        relative: 0.05 0.4;
+                        offset: 0 0;
                     }
                     rel2 {
-                        relative: 0.3 0.8;
+                        relative: 0.30 0.8;
                         offset: -1 -1;
                     }
                 }
@@ -72,15 +81,16 @@ collections {
                 type: SWALLOW;
                 description { state: "default" 0.0;
                     aspect: 1.0 1.0;
+                    aspect_preference: HORIZONTAL;
                     rel1 {
-                        to_y: "input/1";
-                        relative: 0.35 0.0;
-                        offset: 3 0;
+                        to: "input/1";
+                        relative: 1.0 0.0;
+                        offset: -1 0;
                     }
                     rel2 {
-                        to_y: "input/1";
-                        relative: 0.55 1.0;
-                        offset: -1 -1;
+                        to: "input/1";
+                        relative: 2.0 1.0;
+                        offset: -2 -1;
                     }
                 }
             }
@@ -88,15 +98,16 @@ collections {
                 type: SWALLOW;
                 description { state: "default" 0.0;
                     aspect: 1.0 1.0;
+                    aspect_preference: HORIZONTAL;
                     rel1 {
-                        to_y: "input/1";
-                        relative: 0.6 0.0;
-                        offset: 3 0;
+                        to: "input/2";
+                        relative: 1.0 0.0;
+                        offset: -1 0;
                     }
                     rel2 {
-                        to_y: "input/1";
-                        relative: 0.8 1.0;
-                        offset: -1 -1;
+                        to: "input/2";
+                        relative: 2.0 1.0;
+                        offset: -2 -1;
                     }
                 }
             }
@@ -104,6 +115,22 @@ collections {
     }
 
 #define RESULT_CHOICE(NAME, REL1X, REL1Y, REL2X, REL2Y) \
+part {	  name: "result/choice/"NAME"/bg"; \
+    type: RECT; \
+    mouse_events: 0; \
+    clip_to: "result/choice/clip"; \
+    description { state: "default" 0.0; \
+        color_class: "kanji"; \
+        rel1 { \
+            relative: REL1X REL1Y; \
+            offset: 1 1; \
+        } \
+        rel2 { \
+            relative: REL2X REL2Y; \
+            offset: -1 -1; \
+        } \
+    } \
+} \
 part { name: "result/choice/"NAME; \
     type: TEXT; \
     effect: NONE; \
@@ -113,12 +140,12 @@ part { name: "result/choice/"NAME; \
         text { \
             text:        ""; \
             font:        "Sans"; \
-            size:         18; \
+            size:         28; \
             align:       0.5 0.5; \
         } \
         rel1 { \
             relative: REL1X REL1Y; \
-            offset: 0 0; \
+            offset: 1 1; \
         } \
         rel2 { \
             relative: REL2X REL2Y; \
@@ -140,6 +167,26 @@ program { name: "result/choice/"NAME",clicked"; \
 
     group { name: "ekanji/input";
         images {
+            image: "corner.png" COMP;
+            image: "x.png" COMP;
+        }
+        color_classes {
+            color_class {
+                name:  "canvas/bg";
+                color: 255 243 206 255;
+            }
+            color_class {
+                name:  "canvas/border";
+                color: 222 148 69 255;
+            }
+            color_class {
+                name:  "canvas/bar";
+                color: 255 220 164 255;
+            }
+            color_class {
+                name:  "kanji";
+                color: 255 220 164 255;
+            }
         }
         script {
             public message(Msg_Type:type, id, ...) {
@@ -165,15 +212,13 @@ program { name: "result/choice/"NAME",clicked"; \
                     set_text(PART:"result/choice/7", buf);
                 }
             }
-
         }
         parts {
-            part {	  name: "bg";
+            part {	  name: "border";
                 type: RECT;
                 mouse_events: 0;
                 description { state: "default" 0.0;
-                    align: 0 0;
-                    color: 255 255 255 0;
+                    color_class: "canvas/border";
                     rel1 {
                         relative: 0.0 0.0;
                         offset: 0 0;
@@ -181,6 +226,55 @@ program { name: "result/choice/"NAME",clicked"; \
                     rel2 {
                         relative: 1.0 1.0;
                         offset: -1 -1;
+                    }
+                }
+            }
+            part {	  name: "bg";
+                type: RECT;
+                mouse_events: 0;
+                description { state: "default" 0.0;
+                    color_class: "canvas/bg";
+                    rel1 {
+                        relative: 0.0 0.0;
+                        offset: 1 1;
+                    }
+                    rel2 {
+                        relative: 1.0 1.0;
+                        offset: -2 -2;
+                    }
+                }
+            }
+            part {	  name: "bg/hbar";
+                type: RECT;
+                mouse_events: 0;
+                description { state: "default" 0.0;
+                    color_class: "canvas/bar";
+                    rel1 {
+                        to: "bg";
+                        relative: 0.0 0.5;
+                        offset: 0 0;
+                    }
+                    rel2 {
+                        to: "bg";
+                        relative: 1.0 0.5;
+                        offset: -1 0;
+                    }
+                }
+            }
+            part {	  name: "bg/vbar";
+                type: RECT;
+                mouse_events: 0;
+                description { state: "default" 0.0;
+                    color_class: "canvas/bar";
+                    rel1 {
+                        to: "bg";
+                        relative: 0.5 0.0;
+                        offset: 0 0;
+                    }
+                    rel2 {
+                        to: "bg";
+                        relative: 0.5 1.0;
+                        offset: 0 -1;
                     }
                 }
             }
@@ -203,12 +297,13 @@ program { name: "result/choice/"NAME",clicked"; \
                 description { state: "default" 0.0;
                     visible: 0;
                     align: 0 0;
-                    color: 200 200 200 255;
                     rel1 {
+                        to: "bg";
                         relative: 0.0 0.0;
                         offset: 0 0;
                     }
                     rel2 {
+                        to: "bg";
                         relative: 1.0 1.0;
                         offset: -1 -1;
                     }
@@ -225,7 +320,7 @@ program { name: "result/choice/"NAME",clicked"; \
                 description { state: "default" 0.0;
                     visible: 1;
                     align: 0 0;
-                    color: 200 200 200 255;
+                    color_class: "kanji";
                     rel1 {
                         relative: 0.0 0.0;
                         offset: 0 0;
@@ -242,12 +337,12 @@ program { name: "result/choice/"NAME",clicked"; \
                 clip_to: "result/clip";
                 mouse_events: 0;
                 description { state: "default" 0.0;
-                    color:  0 0 0 255;
                     align: 0 0;
+                    color: 0 0 0 255;
                     text {
                         text:        "";
                         font:        "Sans";
-                        size:         36;
+                        size:         60;
                         align:       0.5 0.5;
                         //fit:         1 1; // Fit is very slow for japanese kanji...
                     }
@@ -262,19 +357,19 @@ program { name: "result/choice/"NAME",clicked"; \
                 }
             }
             part { name: "result/choose";
-                type: RECT;
                 clip_to: "result/clip";
                 description { state: "default" 0.0;
                     align: 0 0;
-                    color:  100 100 100 255;
+                    color_class: "canvas/border";
                     rel1 {
                         relative: 0.67 0.67;
-                        offset: 0 0;
+                        offset: 1 1;
                     }
                     rel2 {
                         relative: 1.0 1.0;
                         offset: -1 -1;
                     }
+                    image.normal: "corner.png";
                 }
             }
             part {	  name: "result/choice/clip";
@@ -283,12 +378,13 @@ program { name: "result/choice/"NAME",clicked"; \
                 description { state: "default" 0.0;
                     visible: 0;
                     align: 0 0;
-                    color: 200 200 200 255;
                     rel1 {
+                        to: "bg";
                         relative: 0.0 0.0;
                         offset: 0 0;
                     }
                     rel2 {
+                        to: "bg";
                         relative: 1.0 1.0;
                         offset: -1 -1;
                     }
@@ -303,7 +399,7 @@ program { name: "result/choice/"NAME",clicked"; \
                 clip_to: "result/choice/clip";
                 description { state: "default" 0.0;
                     align: 0 0;
-                    color: 155 155 155 255;
+                    color_class: "canvas/border";
                     rel1 {
                         relative: 0.0 0.0;
                         offset: 0 0;
@@ -322,19 +418,33 @@ program { name: "result/choice/"NAME",clicked"; \
             RESULT_CHOICE("5", 0.67, 0.33, 1.00, 0.67)
             RESULT_CHOICE("6", 0.00, 0.67, 0.33, 1.00)
             RESULT_CHOICE("7", 0.33, 0.67, 0.67, 1.00)
-            part { name: "result/clear";
+            part { name: "result/clear/bg";
                 type: RECT;
                 clip_to: "result/choice/clip";
                 description { state: "default" 0.0;
-                    color:  100 100 100 255;
+                    color_class: "kanji";
                     rel1 {
                         relative: 0.67 0.67;
-                        offset: 0 0;
+                        offset: 1 1;
                     }
                     rel2 {
                         relative: 1.0 1.0;
                         offset: -1 -1;
                     }
+                }
+            }
+            part { name: "result/clear";
+                clip_to: "result/choice/clip";
+                description { state: "default" 0.0;
+                    rel1 {
+                        relative: 0.67 0.67;
+                        offset: 1 1;
+                    }
+                    rel2 {
+                        relative: 1.0 1.0;
+                        offset: -1 -1;
+                    }
+                    image.normal: "x.png";
                 }
             }
         }
