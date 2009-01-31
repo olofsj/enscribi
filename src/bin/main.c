@@ -140,6 +140,7 @@ main(int argc, char **argv)
     Evas *evas;
     Evas_Object *bg, *edje, *o, *canvas;
     Evas_Coord w, h;
+    Ekanji_Recognizer *recognizer;
     w = 480;
     h = 200;
 
@@ -167,13 +168,19 @@ main(int argc, char **argv)
     evas_object_move(edje, 0, 0);
     evas_object_resize(edje, w, h);
     evas_object_show(edje);
+
+    /* Add the input frames and handwriting recognition engine */
+    recognizer = ekanji_recognizer_new();
     o = ekanji_input_frame_add(evas, edje);
+    ekanji_input_frame_recognizer_set(o, recognizer);
     evas_object_smart_callback_add(o, "input,selected", _cb_input_send, NULL);
     edje_object_part_swallow(edje, "input/1", o);
     o = ekanji_input_frame_add(evas, edje);
+    ekanji_input_frame_recognizer_set(o, recognizer);
     evas_object_smart_callback_add(o, "input,selected", _cb_input_send, NULL);
     edje_object_part_swallow(edje, "input/2", o);
     o = ekanji_input_frame_add(evas, edje);
+    ekanji_input_frame_recognizer_set(o, recognizer);
     evas_object_smart_callback_add(o, "input,selected", _cb_input_send, NULL);
     edje_object_part_swallow(edje, "input/3", o);
 

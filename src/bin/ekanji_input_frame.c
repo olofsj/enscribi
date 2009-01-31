@@ -2,6 +2,7 @@
 #include <Ecore.h>
 #include <Edje.h>
 #include "ekanji_util.h" 
+#include "ekanji_recognizer.h" 
 #include "ekanji_canvas.h" 
 
 typedef struct _Smart_Data Smart_Data;
@@ -49,6 +50,18 @@ ekanji_input_frame_add(Evas *evas, Evas_Object *parent)
     return obj;
 }
 
+void 
+ekanji_input_frame_recognizer_set(Evas_Object *obj, Ekanji_Recognizer *recognizer)
+{
+    Smart_Data *sd;
+
+    sd = evas_object_smart_data_get(obj);
+    if (!sd) 
+        return;
+
+    ekanji_canvas_recognizer_set(sd->canvas, recognizer);
+}
+
 /* callbacks */
 static void
 _ekanji_input_frame_cb_matches(void *data, Evas_Object *obj, const char *emission, const char *source)
@@ -61,6 +74,7 @@ _ekanji_input_frame_cb_matches(void *data, Evas_Object *obj, const char *emissio
     
     sd = data;
     matches = ekanji_canvas_matches_get(sd->canvas);
+    if (!matches) return;
         
     msg = calloc(1, sizeof(Edje_Message_String_Set) - sizeof(char *) + (9 * sizeof(char *)));
     msg->count = 9;

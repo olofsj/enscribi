@@ -6,19 +6,6 @@
 #include "ekanji_canvas.h" 
 
 typedef struct _Smart_Data Smart_Data;
-typedef struct _Stroke  Stroke;
-typedef struct _Point   Point;
-
-struct _Stroke
-{
-    Eina_List *points;
-};
-
-struct _Point
-{
-    Evas_Coord x;
-    Evas_Coord y;
-};
 
 struct _Smart_Data
 { 
@@ -27,9 +14,8 @@ struct _Smart_Data
     Evas_Object     *clip;
     Evas_Object     *img;
     Eina_List       *strokes;
-    Eina_List       *matches;
     Ecore_Timer     *hold_timer;
-    zinnia_recognizer_t *recognizer;
+    Ekanji_Recognizer *recognizer;
     Evas_Coord       last_x, last_y; // Last mouse coords for drawing lines. Could this be handled better?
     double           linewidth, lineradius;
 }; 
@@ -106,7 +92,19 @@ Eina_List *ekanji_canvas_matches_get(Evas_Object *obj)
     if (!sd) 
         return NULL;
 
-    return sd->matches;
+    return ekanji_recognizer_matches_get(sd->recognizer);
+}
+
+void 
+ekanji_canvas_recognizer_set(Evas_Object *obj, Ekanji_Recognizer *recognizer)
+{
+    Smart_Data *sd;
+
+    sd = evas_object_smart_data_get(obj);
+    if (!sd) 
+        return;
+
+    sd->recognizer = recognizer;
 }
 
 /*
@@ -366,63 +364,15 @@ _ekanji_canvas_recognition_update(Smart_Data *sd)
 {
     int i, sc;
     Eina_List *s, *p;
-    Stroke *stroke;
-    Point *point;
-    Match *match;
-    zinnia_character_t *character;
-    zinnia_result_t *result;
 
-    printf("Update recognition\n");
-    while (sd->matches) {
-        free(sd->matches->data);
-        sd->matches = eina_list_remove_list(sd->matches, sd->matches);
-    }
+    ekanji_recognizer_lookup(sd->recognizer, sd->strokes);
 
-    /* convert internal stroke data to zinnia format */
-    character  = zinnia_character_new();
-    zinnia_character_clear(character);
-    zinnia_character_set_width(character, sd->w);
-    zinnia_character_set_height(character, sd->h);
-    sc = -1;
-    for (s = sd->strokes; s; s = s->next) {
-        sc++;
-        stroke = s->data;
-        for (p = stroke->points; p; p = p->next) {
-            point = p->data;
-            zinnia_character_add(character, sc, point->x, point->y);
-        }
-    }
-
-    /* classify stroke data and update matches */
-    result = zinnia_recognizer_classify(sd->recognizer, character, 10);
-    if (result == NULL) {
-        fprintf(stderr, "%s\n", zinnia_recognizer_strerror(sd->recognizer));
-        return;
-    }
-
-    for (i = 0; i < zinnia_result_size(result); ++i) {
-        match = malloc(sizeof(Match));
-        match->str = zinnia_result_value(result, i);
-        match->score = zinnia_result_score(result, i);
-        sd->matches = eina_list_append(sd->matches, match);
-    }
-    
     /* emit signal to edje parent about update */
     Evas_Object *parent;
     parent = evas_object_smart_parent_get(sd->obj);
     if (parent) {
         edje_object_signal_emit(parent, "canvas,matches,updated", "canvas");
     }
-
-    zinnia_result_destroy(result);
-    zinnia_character_destroy(character);
-
-    /*
-    for (s = sd->matches; s; s = s->next) {
-        match = s->data;
-        printf("%s\t%f\n", match->str, match->score);
-    }
-    */
 
     _ekanji_canvas_clear(sd->obj);
 }
@@ -476,16 +426,11 @@ _smart_add(Evas_Object *obj)
     evas_object_image_alpha_set(sd->img, 1);
     evas_object_show(sd->img);
 
-    /* Initialize zinnia recognition engine */
-    sd->recognizer = zinnia_recognizer_new();
-    if (!zinnia_recognizer_open(sd->recognizer, "/usr/lib/zinnia/model/tomoe/handwriting-ja.model")) {
-        fprintf(stderr, "ERROR: %s\n", zinnia_recognizer_strerror(sd->recognizer));
-        return;
-    }
+    /* Initialize recognition engine */
+    sd->recognizer = NULL;
 
     /* Initialize lists */
     sd->strokes = NULL;
-    sd->matches = NULL;
 
     /* Set up callbacks */
     evas_object_event_callback_add(obj, EVAS_CALLBACK_MOUSE_DOWN, _cb_mouse_down, NULL);
@@ -504,7 +449,7 @@ _smart_del(Evas_Object *obj)
     if (!sd) return;
     evas_object_del(sd->clip);
     evas_object_del(sd->img);
-    zinnia_recognizer_destroy(sd->recognizer);
+    ekanji_recognizer_del(sd->recognizer);
     free(sd);
 }
 
@@ -537,6 +482,7 @@ _smart_resize(Evas_Object *obj, Evas_Coord w, Evas_Coord h)
     evas_object_resize(sd->clip, w, h);
     evas_object_resize(sd->img, w, h);
     evas_object_image_size_set(sd->img, w, h);
+    ekanji_recognizer_resize(sd->recognizer, w, h);
     _ekanji_canvas_clear(sd->obj);
 }
 
