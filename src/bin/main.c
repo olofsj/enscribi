@@ -132,6 +132,14 @@ _cb_input_send(void *data, Evas_Object *obj, void *event_info)
     
     _send_string_press(string);
 }
+    
+static void
+_cb_key_pressed(void *data, Evas_Object *obj, const char *emission, const char *source)
+{
+    printf("Ekanji: _cb_key_pressed (%s : %s)\n", emission, source);
+    
+    ecore_x_test_fake_key_press(source);
+}
 
 int
 main(int argc, char **argv)
@@ -183,6 +191,7 @@ main(int argc, char **argv)
     ekanji_input_frame_recognizer_set(o, recognizer);
     evas_object_smart_callback_add(o, "input,selected", _cb_input_send, NULL);
     edje_object_part_swallow(edje, "input/3", o);
+    edje_object_signal_callback_add(edje, "key,pressed", "*", _cb_key_pressed, NULL);
 
     /* show the window */
     ecore_evas_show(ee);
