@@ -2,11 +2,11 @@
 #include <stdio.h>
 #include <limits.h>
 #include <sys/stat.h>
-#include "ekanji_util.h"
+#include "enscribi_util.h"
 #include "config.h"
 
 char *
-ekanji_theme_find(const char *name)
+enscribi_theme_find(const char *name)
 {
   static char eet[PATH_MAX + 1];
   struct stat st;

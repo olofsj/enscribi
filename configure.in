@@ -1,7 +1,7 @@
 # get rid of that stupid cache mechanism
 rm -f config.cache
 
-AC_INIT(ekanji, 0.1.0.0, enlightenment-devel@lists.sourceforge.net)
+AC_INIT(enscribi, 0.1.0.0, olofsj@gmail.com)
 AC_PREREQ(2.52)
 AC_CONFIG_SRCDIR(configure.in)
 
@@ -15,7 +15,7 @@ AM_PROG_CC_STDC
 AC_HEADER_STDC
 AC_C_CONST
 
-PKG_CHECK_MODULES([EKANJI], [
+PKG_CHECK_MODULES([ENSCRIBI], [
    evas
    ecore
    ecore-evas

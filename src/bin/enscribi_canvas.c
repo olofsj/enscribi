@@ -3,7 +3,7 @@
 #include <Edje.h>
 #include <zinnia.h>
 #include <math.h>
-#include "ekanji_canvas.h" 
+#include "enscribi_canvas.h" 
 
 typedef struct _Smart_Data Smart_Data;
 
@@ -15,7 +15,7 @@ struct _Smart_Data
     Evas_Object     *img;
     Eina_List       *strokes;
     Ecore_Timer     *hold_timer;
-    Ekanji_Recognizer *recognizer;
+    Enscribi_Recognizer *recognizer;
     Evas_Coord       last_x, last_y; // Last mouse coords for drawing lines. Could this be handled better?
     double           linewidth, lineradius;
 }; 
@@ -68,23 +68,23 @@ static void _smart_color_set(Evas_Object *obj, int r, int g, int b, int a);
 static void _smart_clip_set(Evas_Object *obj, Evas_Object *clip);
 static void _smart_clip_unset(Evas_Object *obj);
 
-static void _ekanji_canvas_stroke_new(Evas_Object *obj);
-static void _ekanji_canvas_stroke_line_add(Evas_Object *obj, Evas_Coord x, Evas_Coord y);
-static void _ekanji_canvas_recognition_update(Smart_Data *sd);
-static int _ekanji_canvas_cb_hold_timeout(void *data);
+static void _enscribi_canvas_stroke_new(Evas_Object *obj);
+static void _enscribi_canvas_stroke_line_add(Evas_Object *obj, Evas_Coord x, Evas_Coord y);
+static void _enscribi_canvas_recognition_update(Smart_Data *sd);
+static int _enscribi_canvas_cb_hold_timeout(void *data);
 
 /* local subsystem globals */
 static Evas_Smart *_e_smart = NULL;
 
 /* externally accessible functions */
 Evas_Object *
-ekanji_canvas_add(Evas *evas)
+enscribi_canvas_add(Evas *evas)
 {
     _smart_init();
     return evas_object_smart_add(evas, _e_smart);
 }
 
-Eina_List *ekanji_canvas_matches_get(Evas_Object *obj)
+Eina_List *enscribi_canvas_matches_get(Evas_Object *obj)
 {
     Smart_Data *sd;
 
@@ -92,11 +92,11 @@ Eina_List *ekanji_canvas_matches_get(Evas_Object *obj)
     if (!sd) 
         return NULL;
 
-    return ekanji_recognizer_matches_get(sd->recognizer);
+    return enscribi_recognizer_matches_get(sd->recognizer);
 }
 
 void 
-ekanji_canvas_recognizer_set(Evas_Object *obj, Ekanji_Recognizer *recognizer)
+enscribi_canvas_recognizer_set(Evas_Object *obj, Enscribi_Recognizer *recognizer)
 {
     Smart_Data *sd;
 
@@ -115,7 +115,7 @@ ekanji_canvas_recognizer_set(Evas_Object *obj, Ekanji_Recognizer *recognizer)
    going from float to integer.
 */
 static void
-_ekanji_canvas_draw_line(Evas_Object *obj, Evas_Coord x0, Evas_Coord y0, Evas_Coord x1, Evas_Coord y1)
+_enscribi_canvas_draw_line(Evas_Object *obj, Evas_Coord x0, Evas_Coord y0, Evas_Coord x1, Evas_Coord y1)
 {
     Evas_Coord dx, dy, w, h, x, y, min_x, min_y, max_x, max_y;
     unsigned int *data, *p1, *addr;
@@ -200,8 +200,8 @@ _cb_mouse_down(void *data, Evas *evas, Evas_Object *obj, void *event_info)
     sd->hold_timer = NULL;
 
     ev = event_info;
-    _ekanji_canvas_stroke_new(obj);
-    _ekanji_canvas_stroke_line_add(obj, ev->canvas.x, ev->canvas.y);
+    _enscribi_canvas_stroke_new(obj);
+    _enscribi_canvas_stroke_line_add(obj, ev->canvas.x, ev->canvas.y);
 
     printf("Mouse down.\n");
 }
@@ -212,7 +212,7 @@ _cb_mouse_up(void *data, Evas *evas, Evas_Object *obj, void *event_info)
     Smart_Data *sd;
 
     sd = evas_object_smart_data_get(obj);
-    sd->hold_timer = ecore_timer_add(1.0, _ekanji_canvas_cb_hold_timeout, sd);
+    sd->hold_timer = ecore_timer_add(1.0, _enscribi_canvas_cb_hold_timeout, sd);
 
     printf("Mouse up.\n");
 }
@@ -224,13 +224,13 @@ _cb_mouse_move(void *data, Evas *evas, Evas_Object *obj, void *event_info)
 
     ev = event_info;
     if (ev->buttons == 1)
-        _ekanji_canvas_stroke_line_add(obj, ev->cur.canvas.x, ev->cur.canvas.y);
+        _enscribi_canvas_stroke_line_add(obj, ev->cur.canvas.x, ev->cur.canvas.y);
 }
 
 /* private functions */
 
 static void
-_ekanji_canvas_stroke_new(Evas_Object *obj)
+_enscribi_canvas_stroke_new(Evas_Object *obj)
 {
     Stroke *stroke;
     Smart_Data *sd;
@@ -243,7 +243,7 @@ _ekanji_canvas_stroke_new(Evas_Object *obj)
 }
 
 static void
-_ekanji_canvas_stroke_line_add(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
+_enscribi_canvas_stroke_line_add(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
 {
     Evas_Coord dx, dy, w, h, xx, yy;
     Eina_List *last, *ll;
@@ -268,7 +268,7 @@ _ekanji_canvas_stroke_line_add(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
         last = eina_list_last(stroke->points);
         ll = last->prev;
         b = last->data;
-        _ekanji_canvas_draw_line(sd->obj, sd->last_x, sd->last_y, x, y);
+        _enscribi_canvas_draw_line(sd->obj, sd->last_x, sd->last_y, x, y);
 
         if (ll) {
             if (abs(x - b->x) > delta || abs(y - b->y) > delta) {
@@ -316,7 +316,7 @@ _ekanji_canvas_stroke_line_add(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
 }
 
 static void
-_ekanji_canvas_clear(Evas_Object *obj)
+_enscribi_canvas_clear(Evas_Object *obj)
 {
     Smart_Data *sd;
     Stroke *stroke;
@@ -350,22 +350,22 @@ _ekanji_canvas_clear(Evas_Object *obj)
 }
 
 static int
-_ekanji_canvas_cb_hold_timeout(void *data)
+_enscribi_canvas_cb_hold_timeout(void *data)
 {
     Smart_Data *sd;
 
     sd = data;
-    _ekanji_canvas_recognition_update(sd);
+    _enscribi_canvas_recognition_update(sd);
     return 0;
 }
 
 static void
-_ekanji_canvas_recognition_update(Smart_Data *sd)
+_enscribi_canvas_recognition_update(Smart_Data *sd)
 {
     int i, sc;
     Eina_List *s, *p;
 
-    ekanji_recognizer_lookup(sd->recognizer, sd->strokes);
+    enscribi_recognizer_lookup(sd->recognizer, sd->strokes);
 
     /* emit signal to edje parent about update */
     Evas_Object *parent;
@@ -374,7 +374,7 @@ _ekanji_canvas_recognition_update(Smart_Data *sd)
         edje_object_signal_emit(parent, "canvas,matches,updated", "canvas");
     }
 
-    _ekanji_canvas_clear(sd->obj);
+    _enscribi_canvas_clear(sd->obj);
 }
 
 static void
@@ -384,7 +384,7 @@ _smart_init(void)
     {
         static const Evas_Smart_Class sc =
         {
-            "ekanji_canvas",
+            "enscribi_canvas",
             EVAS_SMART_CLASS_VERSION,
             _smart_add,
             _smart_del,
@@ -449,7 +449,7 @@ _smart_del(Evas_Object *obj)
     if (!sd) return;
     evas_object_del(sd->clip);
     evas_object_del(sd->img);
-    ekanji_recognizer_del(sd->recognizer);
+    enscribi_recognizer_del(sd->recognizer);
     free(sd);
 }
 
@@ -482,8 +482,8 @@ _smart_resize(Evas_Object *obj, Evas_Coord w, Evas_Coord h)
     evas_object_resize(sd->clip, w, h);
     evas_object_resize(sd->img, w, h);
     evas_object_image_size_set(sd->img, w, h);
-    ekanji_recognizer_resize(sd->recognizer, w, h);
-    _ekanji_canvas_clear(sd->obj);
+    enscribi_recognizer_resize(sd->recognizer, w, h);
+    _enscribi_canvas_clear(sd->obj);
 }
 
 static void

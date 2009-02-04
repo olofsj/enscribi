@@ -6,21 +6,21 @@ INCLUDES = \
 -I$(top_srcdir) \
 -I$(top_srcdir)/src/bin \
 -DPACKAGE_DATA_DIR=\"$(datadir)/$(PACKAGE)\" \
-@EKANJI_CFLAGS@
+@ENSCRIBI_CFLAGS@
 
-bin_PROGRAMS = ekanji
+bin_PROGRAMS = enscribi
 
-ekanji_INCLUDES = \
-ekanji_util.h \
-ekanji_recognizer.h \
-ekanji_canvas.h \
-ekanji_input_frame.h
+enscribi_INCLUDES = \
+enscribi_util.h \
+enscribi_recognizer.h \
+enscribi_canvas.h \
+enscribi_input_frame.h
 
-ekanji_SOURCES = \
+enscribi_SOURCES = \
 main.c \
-ekanji_util.c \
-ekanji_recognizer.c \
-ekanji_canvas.c \
-ekanji_input_frame.c
+enscribi_util.c \
+enscribi_recognizer.c \
+enscribi_canvas.c \
+enscribi_input_frame.c
 
-ekanji_LDADD = -lzinnia @EKANJI_LIBS@
+enscribi_LDADD = -lzinnia @ENSCRIBI_LIBS@

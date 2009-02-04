@@ -1,9 +1,9 @@
 #include <Eina.h>
 #include <zinnia.h>
-#include "ekanji_recognizer.h" 
+#include "enscribi_recognizer.h" 
 
 void
-ekanji_recognizer_lookup(Ekanji_Recognizer *self, Eina_List *strokes)
+enscribi_recognizer_lookup(Enscribi_Recognizer *self, Eina_List *strokes)
 {
     int i, sc;
     Eina_List *s, *p, *matches;
@@ -55,26 +55,26 @@ ekanji_recognizer_lookup(Ekanji_Recognizer *self, Eina_List *strokes)
 }
 
 Eina_List *
-ekanji_recognizer_matches_get(Ekanji_Recognizer *self)
+enscribi_recognizer_matches_get(Enscribi_Recognizer *self)
 {
     if (!self) return NULL;
     return self->matches;
 }
 
 void
-ekanji_recognizer_resize(Ekanji_Recognizer *self, int w, int h)
+enscribi_recognizer_resize(Enscribi_Recognizer *self, int w, int h)
 {
     if (!self) return;
     self->w = w;
     self->h = h;
 }
 
-Ekanji_Recognizer *
-ekanji_recognizer_new()
+Enscribi_Recognizer *
+enscribi_recognizer_new()
 {
-    Ekanji_Recognizer *self;
+    Enscribi_Recognizer *self;
 
-    self = calloc(1, sizeof(Ekanji_Recognizer));
+    self = calloc(1, sizeof(Enscribi_Recognizer));
     if (!self) return;
 
     self->w = 100;
@@ -89,7 +89,7 @@ ekanji_recognizer_new()
 }
 
 void 
-ekanji_recognizer_del(Ekanji_Recognizer *self)
+enscribi_recognizer_del(Enscribi_Recognizer *self)
 {
     if (!self) return;
 

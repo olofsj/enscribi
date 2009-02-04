@@ -1,9 +1,9 @@
 #include <Evas.h>
 #include <Ecore.h>
 #include <Edje.h>
-#include "ekanji_util.h" 
-#include "ekanji_recognizer.h" 
-#include "ekanji_canvas.h" 
+#include "enscribi_util.h" 
+#include "enscribi_recognizer.h" 
+#include "enscribi_canvas.h" 
 
 typedef struct _Smart_Data Smart_Data;
 
@@ -30,9 +30,9 @@ static void _smart_clip_set(Evas_Object *obj, Evas_Object *clip);
 static void _smart_clip_unset(Evas_Object *obj);
 static void _smart_parent_set(Evas_Object *obj, Evas_Object *parent);
 
-static void _ekanji_input_frame_cb_matches(void *data, Evas_Object *obj, 
+static void _enscribi_input_frame_cb_matches(void *data, Evas_Object *obj, 
         const char *emission, const char *source);
-static void _ekanji_input_frame_cb_finished(void *data, Evas_Object *obj, 
+static void _enscribi_input_frame_cb_finished(void *data, Evas_Object *obj, 
         const char *emission, const char *source);
 
 /* local subsystem globals */
@@ -40,7 +40,7 @@ static Evas_Smart *_e_smart = NULL;
 
 /* externally accessible functions */
 Evas_Object *
-ekanji_input_frame_add(Evas *evas, Evas_Object *parent)
+enscribi_input_frame_add(Evas *evas, Evas_Object *parent)
 {
     Evas_Object *obj;
 
@@ -51,7 +51,7 @@ ekanji_input_frame_add(Evas *evas, Evas_Object *parent)
 }
 
 void 
-ekanji_input_frame_recognizer_set(Evas_Object *obj, Ekanji_Recognizer *recognizer)
+enscribi_input_frame_recognizer_set(Evas_Object *obj, Enscribi_Recognizer *recognizer)
 {
     Smart_Data *sd;
 
@@ -59,12 +59,12 @@ ekanji_input_frame_recognizer_set(Evas_Object *obj, Ekanji_Recognizer *recognize
     if (!sd) 
         return;
 
-    ekanji_canvas_recognizer_set(sd->canvas, recognizer);
+    enscribi_canvas_recognizer_set(sd->canvas, recognizer);
 }
 
 /* callbacks */
 static void
-_ekanji_input_frame_cb_matches(void *data, Evas_Object *obj, const char *emission, const char *source)
+_enscribi_input_frame_cb_matches(void *data, Evas_Object *obj, const char *emission, const char *source)
 {
     Match *match;
     Eina_List *matches, *l;
@@ -73,7 +73,7 @@ _ekanji_input_frame_cb_matches(void *data, Evas_Object *obj, const char *emissio
     Smart_Data *sd;
     
     sd = data;
-    matches = ekanji_canvas_matches_get(sd->canvas);
+    matches = enscribi_canvas_matches_get(sd->canvas);
     if (!matches) return;
         
     msg = calloc(1, sizeof(Edje_Message_String_Set) - sizeof(char *) + (9 * sizeof(char *)));
@@ -90,7 +90,7 @@ _ekanji_input_frame_cb_matches(void *data, Evas_Object *obj, const char *emissio
 }
 
 static void
-_ekanji_input_frame_cb_finished(void *data, Evas_Object *obj, const char *emission, const char *source)
+_enscribi_input_frame_cb_finished(void *data, Evas_Object *obj, const char *emission, const char *source)
 {
     Smart_Data *sd;
     Edje_Message_String msg;
@@ -115,7 +115,7 @@ _smart_init(void)
     {
         static const Evas_Smart_Class sc =
         {
-            "ekanji_input_frame",
+            "enscribi_input_frame",
             EVAS_SMART_CLASS_VERSION,
             _smart_add,
             _smart_del,
@@ -150,17 +150,17 @@ _smart_add(Evas_Object *obj)
    
     /* Set up edje object and canvas */
     sd->edje = edje_object_add(evas_object_evas_get(obj));
-    edje_object_file_set(sd->edje, ekanji_theme_find("ekanji"), "ekanji/input");
+    edje_object_file_set(sd->edje, enscribi_theme_find("enscribi"), "enscribi/input");
     evas_object_move(sd->edje, 0, 0);
     evas_object_show(sd->edje);
-    sd->canvas = ekanji_canvas_add(evas_object_evas_get(obj));
+    sd->canvas = enscribi_canvas_add(evas_object_evas_get(obj));
     edje_object_part_swallow(sd->edje, "canvas", sd->canvas);
 
     /* Set up callbacks */
     edje_object_signal_callback_add(sd->edje, "canvas,matches,updated", "canvas",
-            _ekanji_input_frame_cb_matches, sd);
+            _enscribi_input_frame_cb_matches, sd);
     edje_object_signal_callback_add(sd->edje, "result,finished", "result",
-            _ekanji_input_frame_cb_finished, sd);
+            _enscribi_input_frame_cb_finished, sd);
 
     evas_object_smart_data_set(obj, sd);
 }

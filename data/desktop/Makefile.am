@@ -2,6 +2,6 @@
 MAINTAINERCLEANFILES = Makefile.in
 
 desktopdir = $(datadir)/applications
-desktop_DATA = ekanji.desktop
+desktop_DATA = enscribi.desktop
 
-EXTRA_DIST = ekanji.desktop
+EXTRA_DIST = enscribi.desktop

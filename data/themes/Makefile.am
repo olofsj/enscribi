@@ -9,15 +9,15 @@ EDJE_FLAGS = \
 
 filesdir = $(datadir)/$(PACKAGE)/themes
 files_DATA = \
-ekanji.edj
+enscribi.edj
 
 EXTRA_DIST = \
-ekanji.edc
+enscribi.edc
 
-ekanji.edj: Makefile $(EXTRA_DIST)
+enscribi.edj: Makefile $(EXTRA_DIST)
 	$(EDJE_CC) $(EDJE_FLAGS) \
-	$(top_srcdir)/data/themes/ekanji.edc \
-	$(top_builddir)/data/themes/ekanji.edj
+	$(top_srcdir)/data/themes/enscribi.edc \
+	$(top_builddir)/data/themes/enscribi.edj
 
 clean-local:
 	rm -f *.edj

@@ -176,7 +176,7 @@
             }
 
 collections {
-    group { name: "ekanji/kbd";
+    group { name: "enscribi/kbd";
         images {
             image: "k_tab.png" COMP;
             image: "k_grad.png" COMP;
@@ -357,7 +357,7 @@ program { name: "result/choice/"NAME",clicked"; \
     } \
 }
 
-    group { name: "ekanji/input";
+    group { name: "enscribi/input";
         images {
             image: "corner.png" COMP;
             image: "x.png" COMP;

@@ -1,8 +1,8 @@
 [Desktop Entry]
 Encoding=UTF-8
-Name=Ekanji
+Name=Enscribi
 Comment=Japanese and Chinese character handwriting recognition input method
-Exec=ekanji
+Exec=enscribi
 Icon=
 Terminal=false
 Type=Application

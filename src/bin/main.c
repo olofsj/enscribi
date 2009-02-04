@@ -5,21 +5,21 @@
 #include <Ecore_X.h>
 #include <Ecore_X_Atoms.h>
 #include <Edje.h>
-#include "ekanji_canvas.h" 
-#include "ekanji_input_frame.h" 
-#include "ekanji_util.h" 
+#include "enscribi_canvas.h" 
+#include "enscribi_input_frame.h" 
+#include "enscribi_util.h" 
 
 static void
 _cb_exit(Ecore_Evas *ee)
 {
-    printf("Ekanji: _cb_exit\n");
+    printf("Enscribi: _cb_exit\n");
     ecore_main_loop_quit();
 }
 
 static void
 _cb_move(Ecore_Evas *ee)
 {
-    printf("Ekanji: _cb_move\n");
+    printf("Enscribi: _cb_move\n");
 
     //Evas_Coord w, h, x, y;
     //ecore_evas_geometry_get(ee, &x, &y, &w, &h);
@@ -117,7 +117,7 @@ _send_string_press(const char *str)
    const char *key = NULL;
    
    key = _string_to_keysym(str);
-   printf("Ekanji: key = %s\n", key);
+   printf("Enscribi: key = %s\n", key);
    if (!key) return;
    ecore_x_test_fake_key_press(key);
 }
@@ -128,7 +128,7 @@ _cb_input_send(void *data, Evas_Object *obj, void *event_info)
     const char * string;
 
     string = event_info;
-    printf("Ekanji: _cb_input_send (%s)\n", string);
+    printf("Enscribi: _cb_input_send (%s)\n", string);
     
     _send_string_press(string);
 }
@@ -136,7 +136,7 @@ _cb_input_send(void *data, Evas_Object *obj, void *event_info)
 static void
 _cb_key_pressed(void *data, Evas_Object *obj, const char *emission, const char *source)
 {
-    printf("Ekanji: _cb_key_pressed (%s : %s)\n", emission, source);
+    printf("Enscribi: _cb_key_pressed (%s : %s)\n", emission, source);
     
     ecore_x_test_fake_key_press(source);
 }
@@ -148,7 +148,7 @@ main(int argc, char **argv)
     Evas *evas;
     Evas_Object *bg, *edje, *o, *canvas;
     Evas_Coord w, h;
-    Ekanji_Recognizer *recognizer;
+    Enscribi_Recognizer *recognizer;
     w = 480;
     h = 200;
 
@@ -172,23 +172,23 @@ main(int argc, char **argv)
     /* Load and set up the edje objects */
     edje = edje_object_add(evas);
     evas_object_name_set(edje, "kbd");
-    edje_object_file_set(edje, ekanji_theme_find("ekanji"), "ekanji/kbd");
+    edje_object_file_set(edje, enscribi_theme_find("enscribi"), "enscribi/kbd");
     evas_object_move(edje, 0, 0);
     evas_object_resize(edje, w, h);
     evas_object_show(edje);
 
     /* Add the input frames and handwriting recognition engine */
-    recognizer = ekanji_recognizer_new();
-    o = ekanji_input_frame_add(evas, edje);
-    ekanji_input_frame_recognizer_set(o, recognizer);
+    recognizer = enscribi_recognizer_new();
+    o = enscribi_input_frame_add(evas, edje);
+    enscribi_input_frame_recognizer_set(o, recognizer);
     evas_object_smart_callback_add(o, "input,selected", _cb_input_send, NULL);
     edje_object_part_swallow(edje, "input/1", o);
-    o = ekanji_input_frame_add(evas, edje);
-    ekanji_input_frame_recognizer_set(o, recognizer);
+    o = enscribi_input_frame_add(evas, edje);
+    enscribi_input_frame_recognizer_set(o, recognizer);
     evas_object_smart_callback_add(o, "input,selected", _cb_input_send, NULL);
     edje_object_part_swallow(edje, "input/2", o);
-    o = ekanji_input_frame_add(evas, edje);
-    ekanji_input_frame_recognizer_set(o, recognizer);
+    o = enscribi_input_frame_add(evas, edje);
+    enscribi_input_frame_recognizer_set(o, recognizer);
     evas_object_smart_callback_add(o, "input,selected", _cb_input_send, NULL);
     edje_object_part_swallow(edje, "input/3", o);
     edje_object_signal_callback_add(edje, "key,pressed", "*", _cb_key_pressed, NULL);
@@ -205,7 +205,7 @@ main(int argc, char **argv)
     ecore_event_handler_add(ECORE_X_EVENT_CLIENT_MESSAGE, _cb_client_message, ee);
 
     ecore_evas_title_set(ee, "Virtual Keyboard");
-    ecore_evas_name_class_set(ee, "Ekanji", "Virtual-Keyboard");
+    ecore_evas_name_class_set(ee, "Enscribi", "Virtual-Keyboard");
 
     /* tell e that this is a vkbd window */
     ecore_x_e_virtual_keyboard_set(ecore_evas_software_x11_window_get(ee), 1);

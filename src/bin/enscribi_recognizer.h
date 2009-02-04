@@ -1,14 +1,14 @@
-#ifndef _EKANJI_RECOGNIZER_H_
-#define _EKANJI_RECOGNIZER_H_ 
+#ifndef _ENSCRIBI_RECOGNIZER_H_
+#define _ENSCRIBI_RECOGNIZER_H_ 
    
 #include <Eina.h>
 
-typedef struct _Ekanji_Recognizer Ekanji_Recognizer;
+typedef struct _Enscribi_Recognizer Enscribi_Recognizer;
 typedef struct _Stroke  Stroke;
 typedef struct _Point   Point;
 typedef struct _Match   Match;
 
-struct _Ekanji_Recognizer
+struct _Enscribi_Recognizer
 { 
     int              w, h;
     Eina_List       *matches;
@@ -32,11 +32,11 @@ struct _Match
     float score;
 };
 
-Ekanji_Recognizer * ekanji_recognizer_new();
-void ekanji_recognizer_del(Ekanji_Recognizer *self);
-void ekanji_recognizer_resize(Ekanji_Recognizer *self, int w, int h);
-void ekanji_recognizer_lookup(Ekanji_Recognizer *self, Eina_List *strokes);
-Eina_List *ekanji_recognizer_matches_get(Ekanji_Recognizer *self);
+Enscribi_Recognizer * enscribi_recognizer_new();
+void enscribi_recognizer_del(Enscribi_Recognizer *self);
+void enscribi_recognizer_resize(Enscribi_Recognizer *self, int w, int h);
+void enscribi_recognizer_lookup(Enscribi_Recognizer *self, Eina_List *strokes);
+Eina_List *enscribi_recognizer_matches_get(Enscribi_Recognizer *self);
 
 #endif
 
