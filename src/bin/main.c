@@ -132,13 +132,22 @@ _cb_input_send(void *data, Evas_Object *obj, void *event_info)
     
     _send_string_press(string);
 }
-    
+
 static void
 _cb_key_pressed(void *data, Evas_Object *obj, const char *emission, const char *source)
 {
     printf("Enscribi: _cb_key_pressed (%s : %s)\n", emission, source);
     
     ecore_x_test_fake_key_press(source);
+}
+
+static void
+_cb_key_send_pressed(void *data, Evas_Object *obj, const char *emission, const char *source)
+{
+    printf("Enscribi: _cb_key_send_pressed (%s : %s)\n", emission, source);
+    enscribi_input_frame_send_result(edje_object_part_swallow_get(obj, "input/1"));
+    enscribi_input_frame_send_result(edje_object_part_swallow_get(obj, "input/2"));
+    enscribi_input_frame_send_result(edje_object_part_swallow_get(obj, "input/3"));
 }
 
 int
@@ -150,7 +159,7 @@ main(int argc, char **argv)
     Evas_Coord w, h;
     Enscribi_Recognizer *recognizer;
     w = 480;
-    h = 200;
+    h = 160;
 
     /* initialize our libraries */
     evas_init();
@@ -192,6 +201,7 @@ main(int argc, char **argv)
     evas_object_smart_callback_add(o, "input,selected", _cb_input_send, NULL);
     edje_object_part_swallow(edje, "input/3", o);
     edje_object_signal_callback_add(edje, "key,pressed", "*", _cb_key_pressed, NULL);
+    edje_object_signal_callback_add(edje, "result,send", "*", _cb_key_send_pressed, NULL);
 
     /* show the window */
     ecore_evas_show(ee);

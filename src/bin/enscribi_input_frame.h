@@ -6,6 +6,7 @@
 
 Evas_Object *enscribi_input_frame_add(Evas *evas, Evas_Object *parent);
 void enscribi_input_frame_recognizer_set(Evas_Object *obj, Enscribi_Recognizer *recognizer);
+void enscribi_input_frame_send_result(Evas_Object *obj);
 
 #endif
 

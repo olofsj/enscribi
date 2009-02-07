@@ -62,6 +62,17 @@ enscribi_input_frame_recognizer_set(Evas_Object *obj, Enscribi_Recognizer *recog
     enscribi_canvas_recognizer_set(sd->canvas, recognizer);
 }
 
+void enscribi_input_frame_send_result(Evas_Object *obj)
+{
+    Smart_Data *sd;
+
+    sd = evas_object_smart_data_get(obj);
+    if (!sd) 
+        return;
+
+    edje_object_signal_emit(sd->edje, "result,finished", "result");
+}
+
 /* callbacks */
 static void
 _enscribi_input_frame_cb_matches(void *data, Evas_Object *obj, const char *emission, const char *source)
@@ -99,11 +110,13 @@ _enscribi_input_frame_cb_finished(void *data, Evas_Object *obj, const char *emis
     sd = data;
 
     msg.str = edje_object_part_text_get(obj, "result");
-    printf("Result: %s\n", msg.str);
-    if (sd->parent)
-        edje_object_message_send(sd->parent, EDJE_MESSAGE_STRING, 188, &msg);
+    if (msg.str) {
+        printf("Result: %s\n", msg.str);
+        if (sd->parent)
+            edje_object_message_send(sd->parent, EDJE_MESSAGE_STRING, 188, &msg);
 
-    evas_object_smart_callback_call(sd->obj, "input,selected", edje_object_part_text_get(obj, "result"));
+        evas_object_smart_callback_call(sd->obj, "input,selected", edje_object_part_text_get(obj, "result"));
+    }
 }
 
 /* private functions */
