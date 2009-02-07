@@ -214,6 +214,7 @@ main(int argc, char **argv)
     ecore_main_loop_begin();
 
     /* when the main event loop exits, shutdown our libraries */
+    enscribi_recognizer_del(recognizer);
     edje_shutdown();
     ecore_evas_shutdown();
     ecore_shutdown();

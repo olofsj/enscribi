@@ -365,6 +365,7 @@ _enscribi_canvas_recognition_update(Smart_Data *sd)
     int i, sc;
     Eina_List *s, *p;
 
+    enscribi_recognizer_resize(sd->recognizer, sd->w, sd->h);
     enscribi_recognizer_lookup(sd->recognizer, sd->strokes);
 
     /* emit signal to edje parent about update */
@@ -414,6 +415,7 @@ _smart_add(Evas_Object *obj)
     if (!sd) return;
     sd->obj = obj;
     sd->hold_timer = NULL;
+    sd->recognizer = NULL;
     sd->clip = evas_object_rectangle_add(evas_object_evas_get(obj));
     evas_object_smart_member_add(sd->clip, obj);
     sd->linewidth = 2.0;
@@ -425,9 +427,6 @@ _smart_add(Evas_Object *obj)
     evas_object_smart_member_add(sd->img, obj);
     evas_object_image_alpha_set(sd->img, 1);
     evas_object_show(sd->img);
-
-    /* Initialize recognition engine */
-    sd->recognizer = NULL;
 
     /* Initialize lists */
     sd->strokes = NULL;
@@ -449,7 +448,6 @@ _smart_del(Evas_Object *obj)
     if (!sd) return;
     evas_object_del(sd->clip);
     evas_object_del(sd->img);
-    enscribi_recognizer_del(sd->recognizer);
     free(sd);
 }
 
@@ -482,7 +480,6 @@ _smart_resize(Evas_Object *obj, Evas_Coord w, Evas_Coord h)
     evas_object_resize(sd->clip, w, h);
     evas_object_resize(sd->img, w, h);
     evas_object_image_size_set(sd->img, w, h);
-    enscribi_recognizer_resize(sd->recognizer, w, h);
     _enscribi_canvas_clear(sd->obj);
 }
 
