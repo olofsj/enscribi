@@ -688,10 +688,11 @@ program { name: "result/choice/"NAME",clicked"; \
             program { name: "result/clear,clicked";
                 signal:     "mouse,down,1";
                 source:     "result/clear";
-                action:      STATE_SET "default" 0.0;
-                target:     "result/clip";
-                target:     "result/choice/clip";
-                in:          0.0 0.0;
+                script {
+                    set_text(PART:"result", "");
+                    set_state(PART:"result/clip", "default", 0.0);
+                    set_state(PART:"result/choice/clip", "default", 0.0);
+                }
             }
             RESULT_CHOICE_CLICKED("0")
             RESULT_CHOICE_CLICKED("1")
