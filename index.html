@@ -1,1 +1,94 @@
-My GitHub Page
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+ 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+   <title>Enscribi Project Page</title>
+   <meta name="author" content="Olof Sjöbergh" />
+   <link rel="stylesheet" href="css/style.css" type="text/css" media="screen, projection" />
+</head>
+<body>
+<div class="site">
+  <div class="title">
+      <h1><a href="/">Enscribi</a></h1>
+  </div>
+  
+  <div class="content">
+      <p>
+      Enscribi is a handwriting recognition input method for Linux. It's mainly
+      developed for the Openmoko Freerunner smartphone. Though it's a stand-alone
+      application, it can be used as the default keyboard in the Illume window 
+      manager. The focus is on inputting Asian characters, but other languages
+      will also be supported.
+      </p>
+
+      <p>
+      Enscribi uses the <a href="http://www.enlightenment.org/">Enlightenment 
+          Foundation Libraries (EFL)</a>. The theme is written in Edje, a very
+      powerful theming library. This makes it simple to develop and test new 
+      themes and user interfaces since the interface is decoupled from the backend.
+      </p>
+
+      <p>
+      For the character recognition the excellent 
+      <a href="http://zinnia.sourceforge.net/index.html">Zinnia recognition engine</a>
+      is used. The recognition engine is modularized, so it's possible to support
+      other engines as well. The character data from the 
+      <a href="http://tomoe.sourceforge.jp/cgi-bin/en/blog/index.rb">Tomoe</a> project 
+      is used.
+      </p>
+
+      <p>
+      At the moment, only Japanese and Chinese are supported. To support other 
+      languages, character stroke data for these languages would be needed. Also,
+      since the characters of each language are different, a different theme for
+      each language is preferable.
+      </p>
+
+      <h2>Screenshots</h2>
+
+      <p>
+      Here's how the interface looks when entering Japanese text:<br />
+      <img src="images/Screenshot-1.png" width="240" height="80" /><br />
+      <img src="images/Screenshot-2.png" width="240" height="80" /><br />
+      <img src="images/Screenshot-3.png" width="240" height="80" /><br />
+      If a character is not properly recognized, it's possible to choose the
+      correct one from the best matches by clicking in the lower right corner:<br />
+      <img src="images/Screenshot-4.png" width="240" height="80" /><br />
+
+      </p>
+
+      <h2>Get packages</h2>
+
+      <p>
+      Packages can be downloaded from <a href="http://www.opkg.org">opkg.org</a>.<br />
+      <a href="">Enscribi</a><br />
+      <a href="">Zinnia</a><br />
+      <a href="">Zinnia-tomoe</a><br />
+      </p>
+
+      <h2>Get the source</h2>
+      <p>The <a href="http://github.com/olofsj/enscribi/tree/master">source code is hosted on Github</a>.
+      Use the following to clone the repository:
+      <pre>
+      git clone git://github.com/olofsj/enscribi.git
+      </pre>
+      </p>
+
+  </div>
+  
+  <div class="footer">
+    <div class="contact">
+      <p>
+        Olof Sjöbergh<br />
+        olofsj@gmail.com
+      </p>
+    </div>
+  </div>
+</div>
+
+<a href="http://github.com/olofsj"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub" /></a>
+
+</body>
+</html>
