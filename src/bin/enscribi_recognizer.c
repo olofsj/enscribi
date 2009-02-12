@@ -73,6 +73,7 @@ Enscribi_Recognizer *
 enscribi_recognizer_new()
 {
     Enscribi_Recognizer *self;
+    char * file;
 
     self = calloc(1, sizeof(Enscribi_Recognizer));
     if (!self) return;
@@ -81,11 +82,15 @@ enscribi_recognizer_new()
     self->h = 100;
 
     self->recognizer = zinnia_recognizer_new();
-    if (!zinnia_recognizer_open(self->recognizer, "/usr/lib/zinnia/model/tomoe/handwriting-ja.model")) {
-        fprintf(stderr, "ERROR: %s\n", zinnia_recognizer_strerror(self->recognizer));
-    }
+    if (zinnia_recognizer_open(self->recognizer, "/usr/lib/zinnia/model/tomoe/handwriting.model"))
+        return self;
+    if (zinnia_recognizer_open(self->recognizer, "/usr/lib/zinnia/model/tomoe/handwriting-ja.model"))
+        return self;
+    if (zinnia_recognizer_open(self->recognizer, "/usr/lib/zinnia/model/tomoe/handwriting-zh_CN.model"))
+        return self;
 
-    return self;
+    fprintf(stderr, "ERROR: %s\n", zinnia_recognizer_strerror(self->recognizer));
+    return NULL;
 }
 
 void 
