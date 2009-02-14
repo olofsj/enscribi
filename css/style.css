@@ -23,7 +23,7 @@ body {
 }
  
 h1, h2, h3, h4, h5, h6 {
-  font-size: 100%;
+  font-size: 110%;
 }
  
 h1 {
@@ -91,6 +91,7 @@ ul span {
 .title {
   color: #a00;
   font-weight: bold;
+  font-size: 160%;
   margin-bottom: 2em;
 }
  
