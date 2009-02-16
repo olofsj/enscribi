@@ -1,0 +1,17 @@
+TODO
+
+Issues for Enscribi:
+    * Make it possible to choose language with language-specific theme
+    * Color code kanji/hiragana/katakana/latin differently
+    * Split recognition to separate process?
+    * Theme for inputting numbers only
+    * Theme for inputting latin chars
+
+Issues for Zinnia:
+    * Investigate if recognition can weigh the number of strokes more heavily
+
+Character data:
+    * Tomoe Japanese character data missing characters (katakana, hiragana with dots etc.)
+    * Add character data for latin chars
+    * Create separate model for numbers only
+
