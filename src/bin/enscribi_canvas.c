@@ -72,6 +72,7 @@ static void _enscribi_canvas_stroke_new(Evas_Object *obj);
 static void _enscribi_canvas_stroke_line_add(Evas_Object *obj, Evas_Coord x, Evas_Coord y);
 static void _enscribi_canvas_recognition_update(Smart_Data *sd);
 static int _enscribi_canvas_cb_hold_timeout(void *data);
+static void _enscribi_canvas_clear(Evas_Object *obj);
 
 /* local subsystem globals */
 static Evas_Smart *_e_smart = NULL;
@@ -227,6 +228,23 @@ _cb_mouse_move(void *data, Evas *evas, Evas_Object *obj, void *event_info)
         _enscribi_canvas_stroke_line_add(obj, ev->cur.canvas.x, ev->cur.canvas.y);
 }
 
+static void
+_cb_matches_updated(void *data, Evas_Object *obj, void *event_info)
+{
+    Smart_Data *sd;
+
+    sd = evas_object_smart_data_get(obj);
+
+    /* emit signal to edje parent about update */
+    Evas_Object *parent;
+    parent = evas_object_smart_parent_get(sd->obj);
+    if (parent) {
+        edje_object_signal_emit(parent, "canvas,matches,updated", "canvas");
+    }
+
+    _enscribi_canvas_clear(sd->obj);
+}
+
 /* private functions */
 
 static void
@@ -366,16 +384,7 @@ _enscribi_canvas_recognition_update(Smart_Data *sd)
     Eina_List *s, *p;
 
     enscribi_recognizer_resize(sd->recognizer, sd->w, sd->h);
-    enscribi_recognizer_lookup(sd->recognizer, sd->strokes);
-
-    /* emit signal to edje parent about update */
-    Evas_Object *parent;
-    parent = evas_object_smart_parent_get(sd->obj);
-    if (parent) {
-        edje_object_signal_emit(parent, "canvas,matches,updated", "canvas");
-    }
-
-    _enscribi_canvas_clear(sd->obj);
+    enscribi_recognizer_lookup(sd->recognizer, sd->strokes, sd->obj);
 }
 
 static void
@@ -435,6 +444,7 @@ _smart_add(Evas_Object *obj)
     evas_object_event_callback_add(obj, EVAS_CALLBACK_MOUSE_DOWN, _cb_mouse_down, NULL);
     evas_object_event_callback_add(obj, EVAS_CALLBACK_MOUSE_UP, _cb_mouse_up, NULL);
     evas_object_event_callback_add(obj, EVAS_CALLBACK_MOUSE_MOVE, _cb_mouse_move, NULL);
+    evas_object_smart_callback_add(obj, "matches,updated", _cb_matches_updated, NULL);
 
     evas_object_smart_data_set(obj, sd);
 }

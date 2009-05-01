@@ -2,6 +2,8 @@
 #define _ENSCRIBI_RECOGNIZER_H_ 
    
 #include <Eina.h>
+#include <Ecore.h>
+#include <Evas.h>
 
 typedef struct _Enscribi_Recognizer Enscribi_Recognizer;
 typedef struct _Stroke  Stroke;
@@ -12,7 +14,7 @@ struct _Enscribi_Recognizer
 { 
     int              w, h;
     Eina_List       *matches;
-    void            *recognizer;
+    Ecore_Exe       *exe;
 }; 
 
 struct _Stroke
@@ -35,7 +37,7 @@ struct _Match
 Enscribi_Recognizer * enscribi_recognizer_new();
 void enscribi_recognizer_del(Enscribi_Recognizer *self);
 void enscribi_recognizer_resize(Enscribi_Recognizer *self, int w, int h);
-void enscribi_recognizer_lookup(Enscribi_Recognizer *self, Eina_List *strokes);
+void enscribi_recognizer_lookup(Enscribi_Recognizer *self, Eina_List *strokes, Evas_Object *caller);
 Eina_List *enscribi_recognizer_matches_get(Enscribi_Recognizer *self);
 
 #endif
