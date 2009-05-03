@@ -3,7 +3,6 @@ TODO
 Issues for Enscribi:
     * Make it possible to choose language with language-specific theme
     * Color code kanji/hiragana/katakana/latin differently
-    * Split recognition to separate process?
     * Theme for inputting numbers only
     * Theme for inputting latin chars
 
