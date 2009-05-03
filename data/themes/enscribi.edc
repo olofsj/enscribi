@@ -539,6 +539,22 @@ program { name: "result/choice/"NAME",clicked"; \
                     }
                 }
             }
+            part { name: "result/choose";
+                clip_to: "result/clip";
+                description { state: "default" 0.0;
+                    align: 0 0;
+                    color_class: "canvas/border";
+                    rel1 {
+                        relative: 0.67 0.67;
+                        offset: 1 1;
+                    }
+                    rel2 {
+                        relative: 1.0 1.0;
+                        offset: -1 -1;
+                    }
+                    image.normal: "corner.png";
+                }
+            }
             part { name: "result";
                 type: TEXT;
                 effect: NONE;
@@ -562,22 +578,6 @@ program { name: "result/choice/"NAME",clicked"; \
                         relative: 1.0 1.0;
                         offset: -1 -1;
                     }
-                }
-            }
-            part { name: "result/choose";
-                clip_to: "result/clip";
-                description { state: "default" 0.0;
-                    align: 0 0;
-                    color_class: "canvas/border";
-                    rel1 {
-                        relative: 0.67 0.67;
-                        offset: 1 1;
-                    }
-                    rel2 {
-                        relative: 1.0 1.0;
-                        offset: -1 -1;
-                    }
-                    image.normal: "corner.png";
                 }
             }
             part {	  name: "result/choice/clip";
