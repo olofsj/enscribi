@@ -128,7 +128,7 @@ enscribi_recognizer_new()
     // Set up event handler for pipe data, and run slave process with low priority
     ecore_event_handler_add(ECORE_EXE_EVENT_DATA, _exe_data_cb, NULL);
     ecore_exe_run_priority_set(19);
-    self->exe = ecore_exe_pipe_run("/home/olof/code/enscribi/src/bin/enscribi_recognizer_exe", ECORE_EXE_PIPE_WRITE | ECORE_EXE_PIPE_READ, self);
+    self->exe = ecore_exe_pipe_run(PACKAGE_BIN_DIR"/enscribi_recognizer_exe", ECORE_EXE_PIPE_WRITE | ECORE_EXE_PIPE_READ, self);
 
     self->w = 100;
     self->h = 100;

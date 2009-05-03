@@ -6,6 +6,7 @@ INCLUDES = \
 -I$(top_srcdir) \
 -I$(top_srcdir)/src/bin \
 -DPACKAGE_DATA_DIR=\"$(datadir)/$(PACKAGE)\" \
+-DPACKAGE_BIN_DIR=\"$(bindir)\" \
 @ENSCRIBI_CFLAGS@
 
 bin_PROGRAMS = enscribi enscribi_recognizer_exe
