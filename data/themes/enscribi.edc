@@ -328,7 +328,7 @@ part {	  name: "result/choice/"NAME"/bg"; \
     mouse_events: 0; \
     clip_to: "result/choice/clip"; \
     description { state: "default" 0.0; \
-        color_class: "kanji"; \
+        color_class: "other/bg"; \
         rel1 { \
             relative: REL1X REL1Y; \
             offset: 1 1; \
@@ -338,13 +338,25 @@ part {	  name: "result/choice/"NAME"/bg"; \
             offset: -1 -1; \
         } \
     } \
+    description { state: "latin" 0.0; \
+        inherit:  "default" 0.0; \
+        color_class: "latin/bg"; \
+    } \
+    description { state: "hiragana" 0.0; \
+        inherit:  "default" 0.0; \
+        color_class: "hiragana/bg"; \
+    } \
+    description { state: "katakana" 0.0; \
+        inherit:  "default" 0.0; \
+        color_class: "katakana/bg"; \
+    } \
 } \
 part { name: "result/choice/"NAME; \
     type: TEXT; \
     effect: NONE; \
     clip_to: "result/choice/clip"; \
     description { state: "default" 0.0; \
-        color:  0 0 0 255; \
+        color_class: "other"; \
         text { \
             text:        ""; \
             font:        "Sans"; \
@@ -360,6 +372,18 @@ part { name: "result/choice/"NAME; \
             offset: -1 -1; \
         } \
     } \
+    description { state: "latin" 0.0; \
+        inherit:  "default" 0.0; \
+        color_class: "latin"; \
+    } \
+    description { state: "hiragana" 0.0; \
+        inherit:  "default" 0.0; \
+        color_class: "hiragana"; \
+    } \
+    description { state: "katakana" 0.0; \
+        inherit:  "default" 0.0; \
+        color_class: "katakana"; \
+    } \
 }
 #define RESULT_CHOICE_CLICKED(NAME) \
 program { name: "result/choice/"NAME",clicked"; \
@@ -370,7 +394,26 @@ program { name: "result/choice/"NAME",clicked"; \
         new buf[256]; \
         get_text(PART:"result/choice/"NAME, buf, 256); \
         set_text(PART:"result", buf); \
+        new st[31]; \
+        new Float:vl; \
+        get_state(PART:"result/choice/"NAME, st, 30, vl); \
+        set_state(PART:"result", st, vl); \
+        get_state(PART:"result/choice/"NAME"/bg", st, 30, vl); \
+        set_state(PART:"result/bg", st, vl); \
     } \
+}
+#define RESULT_CHOICE_STATE_SET(NAME, glyph) \
+if (glyph < 565) { \
+    set_state(PART:NAME, "latin", 0.0); \
+    set_state(PART:NAME"/bg", "latin", 0.0); \
+} \
+else if (glyph >= 12353 && glyph < 12449) { \
+    set_state(PART:NAME, "hiragana", 0.0); \
+    set_state(PART:NAME"/bg", "hiragana", 0.0); \
+} \
+else if (glyph >= 12449 && glyph < 12543) { \
+    set_state(PART:NAME, "katakana", 0.0); \
+    set_state(PART:NAME"/bg", "katakana", 0.0); \
 }
 
     group { name: "enscribi/input";
@@ -391,14 +434,44 @@ program { name: "result/choice/"NAME",clicked"; \
                 name:  "canvas/bar";
                 color: 255 220 164 255;
             }
+            // Color classes for recognized characters and backgrounds
             color_class {
-                name:  "kanji";
+                name:  "other";
+                color: 0 0 0 255;
+            }
+            color_class {
+                name:  "latin";
+                color: 0 0 0 255;
+            }
+            color_class {
+                name:  "hiragana";
+                color: 0 0 0 255;
+            }
+            color_class {
+                name:  "katakana";
+                color: 255 255 255 255;
+            }
+            color_class {
+                name:  "other/bg";
                 color: 255 220 164 255;
+            }
+            color_class {
+                name:  "latin/bg";
+                color: 194 202 118 255;
+            }
+            color_class {
+                name:  "hiragana/bg";
+                color: 255 196 102 255;
+            }
+            color_class {
+                name:  "katakana/bg";
+                color: 163 198 255 255;
             }
         }
         script {
             public message(Msg_Type:type, id, ...) {
                 if ((type == MSG_STRING_SET) && (id == 1)) {
+                    // Recognized characters, update all the candidates
                     new buf[5];
 
                     getsarg(2, buf, 5);
@@ -418,6 +491,29 @@ program { name: "result/choice/"NAME",clicked"; \
                     set_text(PART:"result/choice/6", buf);
                     getsarg(9, buf, 100);
                     set_text(PART:"result/choice/7", buf);
+                }
+                if ((type == MSG_INT_SET) && (id == 1)) {
+                    // Unicode value of the recognized characters.
+                    // Use this to update the state (color scheme) of the candidates.
+                    new glyph;
+
+                    glyph = getarg(2);
+                    RESULT_CHOICE_STATE_SET("result", glyph)
+                    RESULT_CHOICE_STATE_SET("result/choice/0", glyph)
+                    glyph = getarg(3);
+                    RESULT_CHOICE_STATE_SET("result/choice/1", glyph)
+                    glyph = getarg(4);
+                    RESULT_CHOICE_STATE_SET("result/choice/2", glyph)
+                    glyph = getarg(5);
+                    RESULT_CHOICE_STATE_SET("result/choice/3", glyph)
+                    glyph = getarg(6);
+                    RESULT_CHOICE_STATE_SET("result/choice/4", glyph)
+                    glyph = getarg(7);
+                    RESULT_CHOICE_STATE_SET("result/choice/5", glyph)
+                    glyph = getarg(8);
+                    RESULT_CHOICE_STATE_SET("result/choice/6", glyph)
+                    glyph = getarg(9);
+                    RESULT_CHOICE_STATE_SET("result/choice/7", glyph)
                 }
             }
         }
@@ -528,10 +624,38 @@ program { name: "result/choice/"NAME",clicked"; \
                 description { state: "default" 0.0;
                     visible: 1;
                     align: 0 0;
-                    color_class: "kanji";
+                    color_class: "other/bg";
                     rel1 {
                         relative: 0.0 0.0;
                         offset: 0 0;
+                    }
+                    rel2 {
+                        relative: 1.0 1.0;
+                        offset: -1 -1;
+                    }
+                }
+                description { state: "latin" 0.0;
+                    inherit:  "default" 0.0;
+                    color_class: "latin/bg";
+                }
+                description { state: "hiragana" 0.0;
+                    inherit:  "default" 0.0;
+                    color_class: "hiragana/bg";
+                }
+                description { state: "katakana" 0.0;
+                    inherit:  "default" 0.0;
+                    color_class: "katakana/bg";
+                }
+            }
+            part { name: "result/choose/bg";
+                type: RECT;
+                clip_to: "result/clip";
+                description { state: "default" 0.0;
+                    align: 0 0;
+                    color_class: "other/bg";
+                    rel1 {
+                        relative: 0.73 0.73;
+                        offset: 1 1;
                     }
                     rel2 {
                         relative: 1.0 1.0;
@@ -562,7 +686,7 @@ program { name: "result/choice/"NAME",clicked"; \
                 mouse_events: 0;
                 description { state: "default" 0.0;
                     align: 0 0;
-                    color: 0 0 0 255;
+                    color_class: "other";
                     text {
                         text:        "";
                         font:        "Sans";
@@ -578,6 +702,18 @@ program { name: "result/choice/"NAME",clicked"; \
                         relative: 1.0 1.0;
                         offset: -1 -1;
                     }
+                }
+                description { state: "latin" 0.0;
+                    inherit:  "default" 0.0;
+                    color_class: "latin";
+                }
+                description { state: "hiragana" 0.0;
+                    inherit:  "default" 0.0;
+                    color_class: "hiragana";
+                }
+                description { state: "katakana" 0.0;
+                    inherit:  "default" 0.0;
+                    color_class: "katakana";
                 }
             }
             part {	  name: "result/choice/clip";
@@ -630,7 +766,7 @@ program { name: "result/choice/"NAME",clicked"; \
                 type: RECT;
                 clip_to: "result/choice/clip";
                 description { state: "default" 0.0;
-                    color_class: "kanji";
+                    color_class: "other/bg";
                     rel1 {
                         relative: 0.67 0.67;
                         offset: 1 1;

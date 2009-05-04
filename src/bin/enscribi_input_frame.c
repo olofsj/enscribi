@@ -81,23 +81,36 @@ _enscribi_input_frame_cb_matches(void *data, Evas_Object *obj, const char *emiss
     Eina_List *matches, *l;
     int i;
     Edje_Message_String_Set *msg;
+    Edje_Message_Int_Set *msg2;
     Smart_Data *sd;
     
     sd = data;
     matches = enscribi_canvas_matches_get(sd->canvas);
     if (!matches) return;
         
-    msg = calloc(1, sizeof(Edje_Message_String_Set) - sizeof(char *) + (9 * sizeof(char *)));
+    msg = calloc(1, sizeof(Edje_Message_String_Set) + ((9-1) * sizeof(char *)));
     msg->count = 9;
+    msg2 = calloc(1, sizeof(Edje_Message_String_Set) + ((9-1) * sizeof(int)));
+    msg2->count = 9;
     for (i = 0; i < 8; i++) {
         l = eina_list_nth_list(matches, i);
         match = l->data;
         msg->str[i] = match->str;
-        printf("%s\t\n", msg->str[i]);
+
+        // Get and send the unicode value of the glyph as well
+        int glyph;
+        evas_string_char_next_get(match->str, 0, &(glyph));
+        msg2->val[i] = glyph;
+
+        printf("%s\t(%d)\n", msg->str[i], msg2->val[i]);
     }
     msg->str[8] = ""; // Why do we have to set a 9th element to not get scrap in 8th?
+    msg2->val[8] = 0;
+
     edje_object_message_send(obj, EDJE_MESSAGE_STRING_SET, 1, msg);
+    edje_object_message_send(obj, EDJE_MESSAGE_INT_SET, 1, msg2);
     free(msg);
+    free(msg2);
 }
 
 static void
