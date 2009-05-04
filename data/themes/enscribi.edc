@@ -414,6 +414,10 @@ else if (glyph >= 12353 && glyph < 12449) { \
 else if (glyph >= 12449 && glyph < 12543) { \
     set_state(PART:NAME, "katakana", 0.0); \
     set_state(PART:NAME"/bg", "katakana", 0.0); \
+} \
+else { \
+    set_state(PART:NAME, "default", 0.0); \
+    set_state(PART:NAME"/bg", "default", 0.0); \
 }
 
     group { name: "enscribi/input";
